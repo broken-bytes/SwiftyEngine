@@ -56,7 +56,7 @@ let package = Package(
             dependencies: ["Core", "SDL", "Vulkan"],
             path: "Sources/Rendering",
             swiftSettings: [
-                .unsafeFlags(["-emit-module"])
+                .unsafeFlags(["-emit-module"]),
             ],
             linkerSettings: [
                 .unsafeFlags(["-L", "E:/libs/Vulkan/Lib"]),

@@ -41,6 +41,8 @@ public class GameKit {
         signal(SIGBREAK) { 
             log(level: .error, message: "\($0)")
         }
+
+        Renderer.shared.compileShader(at: "H:\\Projects\\SwiftTest\\Compiled\\Shaders\\default.ps.spv")
     }
 
     public func start() {

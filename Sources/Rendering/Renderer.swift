@@ -1,11 +1,12 @@
 import Core
 import SDL
+import ShaderCompiler
 import Vulkan
 
 public class Renderer {
 
     public static let shared = Renderer()
-
+    private var shaderCompiler: ShaderCompiler!
     private var vkInstance: UnsafeMutablePointer<VkInstance?>!
     private var surface: UnsafeMutablePointer<VkSurfaceKHR?>!
     private var device: Device!
@@ -31,6 +32,7 @@ public class Renderer {
         vkInstance = .allocate(capacity: 1)
         initInstance(window: window)
         initDevice()
+        shaderCompiler = ShaderCompiler(device: device)
         sdlHandleSafe(SDL_Vulkan_CreateSurface(window.windowPtr, vkInstance?.pointee, surface))
         initQueues()
         initSwapchain(window: window)
@@ -46,7 +48,6 @@ public class Renderer {
     }
 
     public func render() {
-        log(level: .info, message: "Render - Start")
         renderFence.wait()
         renderFence.reset()
 
@@ -74,12 +75,14 @@ public class Renderer {
             renderSemaphore: &renderSemaphore, 
             swapchainImageIndex: &swapchainImageIndex
         )
-
-        log(level: .info, message: "Render - End")
     }
 
     public func draw(mesh: inout Mesh, with: inout Transform, drawData: DrawCall) {
         // TODO: Draw mesh in C++ Code
+    }
+
+    public func compileShader(at path: String) {
+
     }
 
     internal func setup(window: UnsafeMutableRawPointer, width: UInt32, height: UInt32) {

@@ -1,3 +1,4 @@
+import DXC
 import SDL
 import Vulkan
 
@@ -46,5 +47,8 @@ class Device {
 
         vkHandleSafe(vkCreateDevice(physicalDevice, &info, nil, device))
         self.physicalDevice = physicalDevice
+    }
+
+    func compileShader(shader: String) {
     }
 }
