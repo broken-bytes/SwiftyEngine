@@ -2,7 +2,8 @@ import Vulkan
 
 class RenderPass {
 
-    var vkRenderPass: UnsafeMutablePointer<VkRenderPass?>
+    var vkRenderPass: VkRenderPass?
+    var device: Device
 
     init(
         device: Device,
@@ -11,6 +12,8 @@ class RenderPass {
         useStencil: Bool,
         usedForPresenting: Bool
     ) {
+        self.device = device
+
         var colorAttachment = VkAttachmentDescription()
 	    colorAttachment.format = format
 	    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT
@@ -20,7 +23,6 @@ class RenderPass {
 	    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE
 	    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
 	    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-
         
         var colorAttachmentRef = VkAttachmentReference()
 	    colorAttachmentRef.attachment = 0
@@ -46,12 +48,10 @@ class RenderPass {
 	        renderPassInfo.pSubpasses = $0
         }
 
-        vkRenderPass = .allocate(capacity: 1)
-
-	    vkHandleSafe(vkCreateRenderPass(device.device.pointee, &renderPassInfo, nil, vkRenderPass))
+	    vkHandleSafe(vkCreateRenderPass(device.device, &renderPassInfo, nil, &vkRenderPass))
     }
 
     deinit {
-        vkRenderPass.deallocate()
+        vkDestroyRenderPass(device.device, vkRenderPass, nil)
     }
 }

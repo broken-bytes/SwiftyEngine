@@ -2,7 +2,8 @@ import Vulkan
 
 class FrameBuffer {
 
-    var vkFrameBuffer: UnsafeMutablePointer<VkFramebuffer?>
+    var vkFrameBuffer: VkFramebuffer?
+    var device: Device
 
     init(
         device: Device,
@@ -11,11 +12,12 @@ class FrameBuffer {
         renderPass: RenderPass,
         imageView: VkImageView?
     ) {
-        print("FRAMEBUFFER - BEFORE")
+        self.device = device
+
         var info = VkFramebufferCreateInfo()
 	    info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO
 	    info.pNext = nil
-	    info.renderPass = renderPass.vkRenderPass.pointee
+	    info.renderPass = renderPass.vkRenderPass
 	    info.attachmentCount = 1
 	    info.width = width
 	    info.height = height
@@ -24,15 +26,10 @@ class FrameBuffer {
             info.pAttachments = $0
         }
 
-        vkFrameBuffer = .allocate(capacity: 1)
-
-        print("FRAMEBUFFER - Pass: \(renderPass.vkRenderPass.pointee)")
-        print("FRAMEBUFFER - Device: \(device.device.pointee)")
-        vkHandleSafe(vkCreateFramebuffer(device.device.pointee, &info, nil, vkFrameBuffer))
-        print("FRAMEBUFFER - AFTER")
+        vkHandleSafe(vkCreateFramebuffer(device.device, &info, nil, &vkFrameBuffer))
     }
 
     deinit {
-        vkFrameBuffer.deallocate()
+        vkDestroyFramebuffer(device.device, vkFrameBuffer, nil)
     }
 }

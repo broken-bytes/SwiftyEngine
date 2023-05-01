@@ -4,7 +4,7 @@ import Vulkan
 
 class Device {
 
-    internal var device: UnsafeMutablePointer<VkDevice?>
+    internal var device: VkDevice?
     internal var physicalDevice: VkPhysicalDevice
 
     init(physicalDevice: VkPhysicalDevice, name: String) {
@@ -43,10 +43,12 @@ class Device {
             info.pQueueCreateInfos = $0
         }
 
-        device = .allocate(capacity: 1)
-
-        vkHandleSafe(vkCreateDevice(physicalDevice, &info, nil, device))
+        vkHandleSafe(vkCreateDevice(physicalDevice, &info, nil, &device))
         self.physicalDevice = physicalDevice
+    }
+
+    deinit {
+        vkDestroyDevice(device, nil)
     }
 
     func compileShader(shader: String) {

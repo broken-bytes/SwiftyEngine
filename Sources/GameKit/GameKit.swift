@@ -42,7 +42,7 @@ public class GameKit {
             log(level: .error, message: "\($0)")
         }
 
-        Renderer.shared.compileShader(at: "H:\\Projects\\SwiftTest\\Compiled\\Shaders\\default.ps.spv")
+        Renderer.shared.compileShader(at: "H:/Projects/SwiftTest/Compiled/Shaders/default.ps.spv")
     }
 
     public func start() {

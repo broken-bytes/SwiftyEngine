@@ -10,7 +10,7 @@ class Swapchain {
 
     init(width: UInt32, height: UInt32, device: Device, surface: UnsafeMutablePointer<VkSurfaceKHR?>, buffers: UInt8, imageFormat: VkFormat) {
         let physicalDevice = device.physicalDevice
-        guard let device = device.device.pointee else { 
+        guard let device = device.device else { 
             fatalError("Device is invalid")
         }
         var caps: UnsafeMutablePointer<VkSurfaceCapabilitiesKHR> = .allocate(capacity: 1)

@@ -2,8 +2,8 @@ import Vulkan
 
 class CommandBuffer {
 
-    var device: Device
     var vkCommandBuffer: VkCommandBuffer?
+    var device: Device
     var clearColor: VkClearValue
 
     init(device: Device, commandPool: CommandPool) {
@@ -11,10 +11,10 @@ class CommandBuffer {
         var info = VkCommandBufferAllocateInfo()
 	    info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
 	    info.pNext = nil
-	    info.commandPool = commandPool.vkCommandPool.pointee
+	    info.commandPool = commandPool.vkCommandPool
 	    info.commandBufferCount = 1
 	    info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY
-	    vkHandleSafe(vkAllocateCommandBuffers(device.device.pointee, &info, &vkCommandBuffer))
+	    vkHandleSafe(vkAllocateCommandBuffers(device.device, &info, &vkCommandBuffer))
 
         clearColor = VkClearValue()
         clearColor.color = VkClearColorValue()
@@ -23,12 +23,12 @@ class CommandBuffer {
         clearColor.depthStencil.depth = (1)
         self.device = device
     }
-    
+
     func execute(
         framebuffer: FrameBuffer, 
         renderPass: RenderPass,
         extent: VkExtent2D,
-        _ block: @escaping () -> Void
+        _ block: @escaping (CommandBuffer) -> Void
     ) {
         var info = VkCommandBufferBeginInfo()
         info.pNext = nil
@@ -41,18 +41,18 @@ class CommandBuffer {
 	    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO
 	    renderPassInfo.pNext = nil
 
-	    renderPassInfo.renderPass = renderPass.vkRenderPass.pointee
+	    renderPassInfo.renderPass = renderPass.vkRenderPass
 	    renderPassInfo.renderArea.offset.x = 0
 	    renderPassInfo.renderArea.offset.y = 0
 	    renderPassInfo.renderArea.extent = extent
-	    renderPassInfo.framebuffer = framebuffer.vkFrameBuffer.pointee
+	    renderPassInfo.framebuffer = framebuffer.vkFrameBuffer
 	    renderPassInfo.clearValueCount = 1
         withUnsafePointer(to: &clearColor) {
             renderPassInfo.pClearValues = $0
         }
 
 	    vkCmdBeginRenderPass(vkCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE)
-        block()
+        block(self)
 
         vkCmdEndRenderPass(vkCommandBuffer)
         vkHandleSafe(vkEndCommandBuffer(vkCommandBuffer))
@@ -62,7 +62,21 @@ class CommandBuffer {
         vkHandleSafe(vkResetCommandBuffer(vkCommandBuffer, 0));
     }
 
-    func setClearColor(color: VkClearValue) {
+    func bind(to pipeline: Pipeline) {
+        vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.vkPipeline)
+    }
+
+    func set(clearColor color: VkClearValue) {
         self.clearColor = color
+    }
+
+    func set(viewport: Viewport) {
+        var vkViewport: VkViewport = .init(x: Float(viewport.x), y: Float(viewport.y), width: Float(viewport.width), height: Float(viewport.height), minDepth: 0, maxDepth: 1)
+        vkCmdSetViewport(vkCommandBuffer, 0, 1, &vkViewport)
+    }
+
+    func set(scissor: Rect) {
+        var vkRect = VkRect2D(offset: .init(x: scissor.x, y: scissor.y), extent: .init(width: scissor.width, height: scissor.height))
+        vkCmdSetScissor(vkCommandBuffer, 0, 1, &vkRect)
     }
 }

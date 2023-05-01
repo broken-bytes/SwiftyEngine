@@ -24,6 +24,8 @@ public class Renderer {
     private var mainRenderPass: RenderPass!
     private var frameBuffers: [FrameBuffer] = []
 
+    private var drawCalls: [DrawCall] = []
+
     internal init() {
     }
 
@@ -52,15 +54,16 @@ public class Renderer {
         renderFence.reset()
 
         var swapchainImageIndex: UInt32 = 0
-	    vkHandleSafe(vkAcquireNextImageKHR(device.device.pointee, swapchain.vkSwapchain, 1000000000, presentSemaphore.vkSemaphore, nil, &swapchainImageIndex))
+	    vkHandleSafe(vkAcquireNextImageKHR(device.device, swapchain.vkSwapchain, 1000000000, presentSemaphore.vkSemaphore, nil, &swapchainImageIndex))
         mainCommandBuffer.reset()
 
         mainCommandBuffer.execute(
             framebuffer: frameBuffers[Int(swapchainImageIndex)], 
             renderPass: mainRenderPass,
             extent: VkExtent2D(width: UInt32(width), height: UInt32(height))
-        ) {
-            
+        ) { 
+            $0.set(clearColor: .init(color: .init(float32: (0.1, 0.1, 0.2, 1))))
+            $0.set(viewport: Viewport(x: 0, y: 0, width: UInt32(self.width), height: UInt32(self.height)))
         }
 
         mainQueue.submit(
@@ -77,12 +80,14 @@ public class Renderer {
         )
     }
 
-    public func draw(mesh: inout Mesh, with: inout Transform, drawData: DrawCall) {
-        // TODO: Draw mesh in C++ Code
+    public func execute(drawCall: DrawCall) {
+        drawCalls.append(drawCall)
+        drawCalls.sort(by: { $0.key < $1.key })
     }
 
     public func compileShader(at path: String) {
-
+        let shader = try! shaderCompiler.compile(at: path)
+        log(level: .info, message: "Shader: \(shader)")
     }
 
     internal func setup(window: UnsafeMutableRawPointer, width: UInt32, height: UInt32) {
