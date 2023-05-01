@@ -12,4 +12,8 @@ struct Semaphore {
 
         vkHandleSafe(vkCreateSemaphore(device.device.pointee, &info, nil, &vkSemaphore))
     }
+
+    func wait() {
+
+    }
 }

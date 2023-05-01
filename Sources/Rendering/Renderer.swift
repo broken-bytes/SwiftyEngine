@@ -47,8 +47,8 @@ public class Renderer {
 
     public func render() {
         log(level: .info, message: "Render - Start")
-	    vkHandleSafe(vkWaitForFences(device.device.pointee, 1, renderFence.vkFence, VK_TRUE, 1000000000))
-	    vkHandleSafe(vkResetFences(device.device.pointee, 1, renderFence.vkFence))
+        renderFence.wait()
+        renderFence.reset()
 
         var swapchainImageIndex: UInt32 = 0
 	    vkHandleSafe(vkAcquireNextImageKHR(device.device.pointee, swapchain.vkSwapchain, 1000000000, presentSemaphore.vkSemaphore, nil, &swapchainImageIndex))
@@ -62,56 +62,18 @@ public class Renderer {
             
         }
 
-        var submit = VkSubmitInfo()
-	    submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO
-	    submit.pNext = nil
+        mainQueue.submit(
+            renderSemaphore: &renderSemaphore, 
+            presentSemaphore: &presentSemaphore, 
+            commandBuffers: [mainCommandBuffer],
+            fence: renderFence
+        )
 
-	    var waitStage: VkPipelineStageFlags = UInt32(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT.rawValue)
-
-        withUnsafePointer(to: &waitStage) {
-	        submit.pWaitDstStageMask = $0
-        }
-
-	    submit.waitSemaphoreCount = 1
-
-        withUnsafePointer(to: &presentSemaphore.vkSemaphore) {
-	        submit.pWaitSemaphores = $0
-        }
-
-	    submit.signalSemaphoreCount = 1
-	    withUnsafePointer(to: &renderSemaphore.vkSemaphore) {
-	        submit.pSignalSemaphores = $0
-        }
-
-	    submit.commandBufferCount = 1
-        withUnsafePointer(to: &mainCommandBuffer.vkCommandBuffer) {
-            submit.pCommandBuffers = $0
-        }
-
-	    vkHandleSafe(vkQueueSubmit(mainQueue.vkQueue, 1, &submit, renderFence.vkFence.pointee))
-
-        var presentInfo = VkPresentInfoKHR()
-	    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR
-	    presentInfo.pNext = nil
-
-        withUnsafePointer(to: &swapchain.vkSwapchain) {
-            presentInfo.pSwapchains = $0
-        }
-
-	    presentInfo.swapchainCount = 1
-
-        withUnsafePointer(to: &renderSemaphore.vkSemaphore) {
-	        presentInfo.pWaitSemaphores = $0
-        }
-
-	    presentInfo.waitSemaphoreCount = 1
-
-        withUnsafePointer(to: &swapchainImageIndex) {
-	        presentInfo.pImageIndices = $0
-        }
-
-	    vkHandleSafe(vkQueuePresentKHR(mainQueue.vkQueue, &presentInfo))
-
+        mainQueue.present(
+            swapchain: swapchain,
+            renderSemaphore: &renderSemaphore, 
+            swapchainImageIndex: &swapchainImageIndex
+        )
 
         log(level: .info, message: "Render - End")
     }
