@@ -9,20 +9,46 @@ public class Renderer {
     private var vkInstance: UnsafeMutablePointer<VkInstance?>!
     private var surface: UnsafeMutablePointer<VkSurfaceKHR?>!
     private var device: Device!
+    private var swapchain: Swapchain!
+    private var mainQueue: Queue!
+    private var renderFence: Fence!
+    private var presentSemaphore: Semaphore!
+    private var renderSemaphore: Semaphore!
+    private var commandPool: CommandPool!
+    private var mainCommandBuffer: CommandBuffer!
 
     internal init() {
     }
 
     public func bind(to window: Window) {
-        surface = UnsafeMutablePointer<VkSurfaceKHR?>.allocate(capacity: 1)
+        surface = .allocate(capacity: 1)
         vkInstance = .allocate(capacity: 1)
-        SDL_Vulkan_CreateSurface(window.windowPtr, vkInstance?.pointee, surface)
         initInstance(window: window)
         initDevice()
+        sdlHandleSafe(SDL_Vulkan_CreateSurface(window.windowPtr, vkInstance?.pointee, surface))
+        initQueues()
+        initSwapchain(window: window)
+        renderFence = Fence(device: device)
+        presentSemaphore = Semaphore(device: device)
+        renderSemaphore = Semaphore(device: device)
+
     }
 
     public func update() {
         
+    }
+
+    public func render() {
+	    vkHandleSafe(vkWaitForFences(device.device.pointee, 1, renderFence.vkFence, VK_TRUE, 1000000000))
+	    vkHandleSafe(vkResetFences(device.device.pointee, 1, renderFence.vkFence))
+
+        var swapchainImageIndex: UInt32 = 0
+	    vkHandleSafe(vkAcquireNextImageKHR(device.device.pointee, swapchain.vkSwapchain.pointee, 1000000000, presentSemaphore.vkSemaphore.pointee, nil, &swapchainImageIndex))
+        vkHandleSafe(vkResetCommandBuffer(mainCommandBuffer.vkCommandBuffer.pointee, 0));
+
+        mainCommandBuffer.execute {
+            
+        }
     }
 
     public func draw(mesh: inout Mesh, with: inout Transform, drawData: DrawCall) {
@@ -92,8 +118,21 @@ public class Renderer {
         self.device = Device(physicalDevice: gpu, name: name)
     }
 
+    private func initQueues() {
+        mainQueue = Queue(device: device, familyIndex: 0)
+        commandPool = CommandPool(device: device, familyIndex: 0)
+        mainCommandBuffer = CommandBuffer(device: device, commandPool: commandPool)
+
+    }
+
+    private func initSwapchain(window: Window) {
+        var width: UInt32 = 0
+        var height: UInt32 = 0
+        SDL_Vulkan_GetDrawableSize(window.windowPtr, &width, &height)
+        self.swapchain = Swapchain(width: width, height: height, device: device, surface: surface, buffers: 2)
+    }
+
     private func findBestGPU() -> VkPhysicalDevice {
-        print(vkInstance?.pointee)
         var count: UnsafeMutablePointer<UInt32> = .allocate(capacity: 1)
         vkEnumeratePhysicalDevices(vkInstance?.pointee, count, nil)
 

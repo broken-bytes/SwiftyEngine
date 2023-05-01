@@ -8,7 +8,7 @@ let package = Package(
         .library(
             name: "GameKit",
             type: .dynamic,
-            targets: ["Core", "ECS", "GameKit", "Rendering"]
+            targets: ["GameKit"]
         ),
         .library(
             name: "Assembly",
@@ -48,7 +48,7 @@ let package = Package(
         ),
         .target(
             name: "GameKit",
-            dependencies: ["Core", "Rendering"],
+            dependencies: ["Core", "ECS", "Rendering"],
             path: "Sources/GameKit"
         ),
         .target(

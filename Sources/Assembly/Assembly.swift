@@ -1,9 +1,8 @@
-import Core
 import GameKit
-import Rendering
 
 public class Assembly {
     public init() {
+        GameKit.shared.start()
         while true {
             GameKit.shared.update()
         }

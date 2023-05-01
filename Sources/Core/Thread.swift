@@ -7,16 +7,18 @@ public class Thread: Foundation.Thread {
         case worker
     }
 
+    public var isStopped: Bool = false
+
     let tHandle: Foundation.Thread
     var blocks: [() -> Void] = []
 
-    init(with block: @escaping () -> Void) {
-        self.blocks = [block]
+    override init() {
+        self.blocks = []
         self.tHandle = Foundation.Thread()
     }
 
-    public static func make(_ block: @escaping () -> Void) -> Thread {
-        Thread(with: block)
+    public static func make() -> Thread {
+        Core.Thread()
     }
 
     public func runOn(_ block: @escaping () -> Void) {
@@ -24,10 +26,12 @@ public class Thread: Foundation.Thread {
     }
 
     public override func main() {
-        for block in blocks { 
-            block()
-        }
+        while !isStopped {
+            for block in blocks { 
+                block()
+            }   
 
-        blocks = []
+            blocks = []
+        }
     }
 }

@@ -5,7 +5,11 @@ public struct Window {
     var isClosed: Bool = false
 
     public init(width: Int32, height: Int32, named: String) {
-        windowPtr = SDL_CreateWindow(named, 0x2FFF0000, 0x2FFF0000, width, height, UInt32(SDL_WINDOW_VULKAN.rawValue))
+        log(level: .debug, message: "SDL Window - Creating")
+        windowPtr = sdlHandleSafe { 
+            SDL_CreateWindow(named, 0x2FFF0000, 0x2FFF0000, width, height, UInt32(SDL_WINDOW_VULKAN.rawValue)) 
+        }
+        log(level: .debug, message: "SDL Window - Created")
     }
 
     public static func processWindowEvents() {
