@@ -2,10 +2,9 @@ import Vulkan
 
 class Queue {
 
-    var vkQueue: UnsafeMutablePointer<VkQueue?>
+    var vkQueue: VkQueue?
 
     init(device: Device, familyIndex: UInt32) {
-        vkQueue = .allocate(capacity: 1)
-        vkGetDeviceQueue(device.device.pointee, familyIndex, 0, vkQueue)
+        vkGetDeviceQueue(device.device.pointee, familyIndex, 0, &vkQueue)
     }
 }

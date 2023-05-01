@@ -9,6 +9,8 @@ public class Renderer {
     private var vkInstance: UnsafeMutablePointer<VkInstance?>!
     private var surface: UnsafeMutablePointer<VkSurfaceKHR?>!
     private var device: Device!
+    private var width: Int32 = 0
+    private var height: Int32 = 0
     private var swapchain: Swapchain!
     private var mainQueue: Queue!
     private var renderFence: Fence!
@@ -16,6 +18,10 @@ public class Renderer {
     private var renderSemaphore: Semaphore!
     private var commandPool: CommandPool!
     private var mainCommandBuffer: CommandBuffer!
+    private let frameBufferCount: UInt8 = 2
+
+    private var mainRenderPass: RenderPass!
+    private var frameBuffers: [FrameBuffer] = []
 
     internal init() {
     }
@@ -31,7 +37,8 @@ public class Renderer {
         renderFence = Fence(device: device)
         presentSemaphore = Semaphore(device: device)
         renderSemaphore = Semaphore(device: device)
-
+        initRenderPasses()
+        initBuffers()
     }
 
     public func update() {
@@ -39,16 +46,74 @@ public class Renderer {
     }
 
     public func render() {
+        log(level: .info, message: "Render - Start")
 	    vkHandleSafe(vkWaitForFences(device.device.pointee, 1, renderFence.vkFence, VK_TRUE, 1000000000))
 	    vkHandleSafe(vkResetFences(device.device.pointee, 1, renderFence.vkFence))
 
         var swapchainImageIndex: UInt32 = 0
-	    vkHandleSafe(vkAcquireNextImageKHR(device.device.pointee, swapchain.vkSwapchain.pointee, 1000000000, presentSemaphore.vkSemaphore.pointee, nil, &swapchainImageIndex))
-        vkHandleSafe(vkResetCommandBuffer(mainCommandBuffer.vkCommandBuffer.pointee, 0));
+	    vkHandleSafe(vkAcquireNextImageKHR(device.device.pointee, swapchain.vkSwapchain, 1000000000, presentSemaphore.vkSemaphore, nil, &swapchainImageIndex))
+        mainCommandBuffer.reset()
 
-        mainCommandBuffer.execute {
+        mainCommandBuffer.execute(
+            framebuffer: frameBuffers[Int(swapchainImageIndex)], 
+            renderPass: mainRenderPass,
+            extent: VkExtent2D(width: UInt32(width), height: UInt32(height))
+        ) {
             
         }
+
+        var submit = VkSubmitInfo()
+	    submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO
+	    submit.pNext = nil
+
+	    var waitStage: VkPipelineStageFlags = UInt32(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT.rawValue)
+
+        withUnsafePointer(to: &waitStage) {
+	        submit.pWaitDstStageMask = $0
+        }
+
+	    submit.waitSemaphoreCount = 1
+
+        withUnsafePointer(to: &presentSemaphore.vkSemaphore) {
+	        submit.pWaitSemaphores = $0
+        }
+
+	    submit.signalSemaphoreCount = 1
+	    withUnsafePointer(to: &renderSemaphore.vkSemaphore) {
+	        submit.pSignalSemaphores = $0
+        }
+
+	    submit.commandBufferCount = 1
+        withUnsafePointer(to: &mainCommandBuffer.vkCommandBuffer) {
+            submit.pCommandBuffers = $0
+        }
+
+	    vkHandleSafe(vkQueueSubmit(mainQueue.vkQueue, 1, &submit, renderFence.vkFence.pointee))
+
+        var presentInfo = VkPresentInfoKHR()
+	    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR
+	    presentInfo.pNext = nil
+
+        withUnsafePointer(to: &swapchain.vkSwapchain) {
+            presentInfo.pSwapchains = $0
+        }
+
+	    presentInfo.swapchainCount = 1
+
+        withUnsafePointer(to: &renderSemaphore.vkSemaphore) {
+	        presentInfo.pWaitSemaphores = $0
+        }
+
+	    presentInfo.waitSemaphoreCount = 1
+
+        withUnsafePointer(to: &swapchainImageIndex) {
+	        presentInfo.pImageIndices = $0
+        }
+
+	    vkHandleSafe(vkQueuePresentKHR(mainQueue.vkQueue, &presentInfo))
+
+
+        log(level: .info, message: "Render - End")
     }
 
     public func draw(mesh: inout Mesh, with: inout Transform, drawData: DrawCall) {
@@ -91,6 +156,10 @@ public class Renderer {
         }
 
         vkHandleSafe(vkCreateInstance(&info, nil, vkInstance))
+
+        SDL_Vulkan_GetDrawableSize(window.windowPtr, &width, &height)
+
+        log(level: .info, message: "Instance - Created")
     }
 
     private func initDevice() {
@@ -116,20 +185,44 @@ public class Renderer {
 
         let name = String.init(cString: namePtr)
         self.device = Device(physicalDevice: gpu, name: name)
+        log(level: .info, message: "Device - Created")
     }
 
     private func initQueues() {
         mainQueue = Queue(device: device, familyIndex: 0)
         commandPool = CommandPool(device: device, familyIndex: 0)
         mainCommandBuffer = CommandBuffer(device: device, commandPool: commandPool)
-
+        log(level: .info, message: "Queues - Created")
     }
 
     private func initSwapchain(window: Window) {
-        var width: UInt32 = 0
-        var height: UInt32 = 0
-        SDL_Vulkan_GetDrawableSize(window.windowPtr, &width, &height)
-        self.swapchain = Swapchain(width: width, height: height, device: device, surface: surface, buffers: 2)
+        self.swapchain = Swapchain(width: UInt32(width), height: UInt32(height), device: device, surface: surface, buffers: frameBufferCount, imageFormat: VK_FORMAT_B8G8R8A8_SRGB)
+        log(level: .info, message: "Swapchain - Created")
+    }
+
+    private func initRenderPasses() {
+        mainRenderPass = RenderPass(
+            device: device, 
+            format: swapchain.imageFormat, 
+            samples: 1, 
+            useStencil: false,
+            usedForPresenting: true
+        )
+        log(level: .info, message: "Render Passes - Created")
+    }
+
+    private func initBuffers() {
+        for x in 0..<frameBufferCount {
+            let buffer = FrameBuffer(
+                device: device, 
+                width: UInt32(width), 
+                height: UInt32(height), 
+                renderPass: mainRenderPass,
+                imageView: swapchain.imageViews[Int(x)]
+            )
+            frameBuffers.append(buffer)
+        }
+        log(level: .info, message: "Buffers - Created")
     }
 
     private func findBestGPU() -> VkPhysicalDevice {

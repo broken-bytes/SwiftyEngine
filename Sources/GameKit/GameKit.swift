@@ -50,6 +50,7 @@ public class GameKit {
     public func update() {
         Window.processWindowEvents()   
         Renderer.shared.update()
+        Renderer.shared.render()
 
         /*
         mainThread.runOn {

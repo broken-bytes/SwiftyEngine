@@ -2,32 +2,67 @@ import Vulkan
 
 class CommandBuffer {
 
-    var vkCommandBuffer: UnsafeMutablePointer<VkCommandBuffer?>
+    var device: Device
+    var vkCommandBuffer: VkCommandBuffer?
+    var clearColor: VkClearValue
 
     init(device: Device, commandPool: CommandPool) {
-        vkCommandBuffer = .allocate(capacity: 1)
 
         var info = VkCommandBufferAllocateInfo()
-	    info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	    info.pNext = nil;
-	    info.commandPool = commandPool.vkCommandPool.pointee;
-	    info.commandBufferCount = 1;
-	    info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	    vkHandleSafe(vkAllocateCommandBuffers(device.device.pointee, &info, vkCommandBuffer));        
-    }
+	    info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO
+	    info.pNext = nil
+	    info.commandPool = commandPool.vkCommandPool.pointee
+	    info.commandBufferCount = 1
+	    info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY
+	    vkHandleSafe(vkAllocateCommandBuffers(device.device.pointee, &info, &vkCommandBuffer))
 
-    func execute(_ block: @escaping () -> Void) {
+        clearColor = VkClearValue()
+        clearColor.color = VkClearColorValue()
+        clearColor.color.float32 = (1, 1, 1, 1)
+        clearColor.depthStencil = VkClearDepthStencilValue()
+        clearColor.depthStencil.depth = (1)
+        self.device = device
+    }
+    
+    func execute(
+        framebuffer: FrameBuffer, 
+        renderPass: RenderPass,
+        extent: VkExtent2D,
+        _ block: @escaping () -> Void
+    ) {
         var info = VkCommandBufferBeginInfo()
         info.pNext = nil
         info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-        vkHandleSafe(vkBeginCommandBuffer(vkCommandBuffer.pointee, &info))
+        info.pInheritanceInfo = nil
+        info.flags = UInt32(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT.rawValue)
+        vkHandleSafe(vkBeginCommandBuffer(vkCommandBuffer, &info))
+        
+        var renderPassInfo = VkRenderPassBeginInfo()
+	    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO
+	    renderPassInfo.pNext = nil
 
+	    renderPassInfo.renderPass = renderPass.vkRenderPass.pointee
+	    renderPassInfo.renderArea.offset.x = 0
+	    renderPassInfo.renderArea.offset.y = 0
+	    renderPassInfo.renderArea.extent = extent
+	    renderPassInfo.framebuffer = framebuffer.vkFrameBuffer.pointee
+	    renderPassInfo.clearValueCount = 1
+        withUnsafePointer(to: &clearColor) {
+            renderPassInfo.pClearValues = $0
+        }
+
+	    vkCmdBeginRenderPass(vkCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE)
         block()
 
-        vkEndCommandBuffer(vkCommandBuffer.pointee)
+        vkCmdEndRenderPass(vkCommandBuffer)
+        vkHandleSafe(vkEndCommandBuffer(vkCommandBuffer))
     }
 
-    func renderpass(_ block: @escaping () -> Void) {
-        //vkCmdBeginRenderPass(vkCommandBuffer.pointee, pRenderPassBegin: UnsafePointer<VkRenderPassBeginInfo>!, contents: VkSubpassContents)
+    func reset() {
+        vkHandleSafe(vkResetCommandBuffer(vkCommandBuffer, 0));
+    }
+
+    func setClearColor(color: VkClearValue) {
+        self.clearColor = color
     }
 }

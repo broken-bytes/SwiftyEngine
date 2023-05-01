@@ -17,13 +17,13 @@ public func initLogger() {
 public func log(level: LogLevel, message: String) {
     switch level {
         case .info:
-            print("INFO: \(Date().debugDescription) \(message)\n")
+            print("INFO: \(Date().debugDescription) \(message)")
         case .debug:
-            print("DEBUG: \(Date().debugDescription) \(message)\n")
+            print("DEBUG: \(Date().debugDescription) \(message)")
         case .warn:
-            print("WARN: \(Date().debugDescription) \(message)\n")
+            print("WARN: \(Date().debugDescription) \(message)")
         case .error:
-            print("ERROR: \(Date().debugDescription) \(message)\n")
+            print("ERROR: \(Date().debugDescription) \(message)")
     }
 }
 #endif
