@@ -1,4 +1,5 @@
 import Core
+import Foundation
 import SDL
 import ShaderCompiler
 import Vulkan
@@ -25,9 +26,12 @@ public class Renderer {
     private var frameBuffers: [FrameBuffer] = []
 
     private var drawCalls: [DrawCall] = []
+    private var pipelines: [Pipeline] = []
+    private var shaders: [Shader] = []
+    private var materials: [Material] = []
+    private var meshes: [Mesh] = []
 
-    internal init() {
-    }
+    internal init() {}
 
     public func bind(to window: Window) {
         surface = .allocate(capacity: 1)
@@ -49,6 +53,35 @@ public class Renderer {
         
     }
 
+    public func createMaterial(vertexShaderId: UInt32, pixelShaderId: UInt32) -> UInt32 {
+
+        var pipeline = pipelines.first { 
+            $0.vertexShader.id == vertexShaderId && $0.pixelShader.id == pixelShaderId 
+        }
+
+        guard
+            let vs = shaders.first(where: { $0.id == vertexShaderId }),
+            let ps = shaders.first(where: { $0.id == pixelShaderId })
+        else { 
+            fatalError("Shaders not found")
+        }
+
+        if pipeline == nil {
+            let newPipeline = Pipeline(device: device, vertexShader: vs, pixelShader: ps, renderPass: mainRenderPass)
+            pipelines.append(newPipeline)
+            pipeline = newPipeline
+        }
+
+        guard let pipeline else {
+            fatalError("Created Pipeline is nil")
+        }
+        
+        let material = Material(vertexShader: vs, pixelShader: ps, pipeline: pipeline)
+        materials.append(material)
+
+        return material.id
+    }
+
     public func render() {
         renderFence.wait()
         renderFence.reset()
@@ -64,6 +97,29 @@ public class Renderer {
         ) { 
             $0.set(clearColor: .init(color: .init(float32: (0.1, 0.1, 0.2, 1))))
             $0.set(viewport: Viewport(x: 0, y: 0, width: UInt32(self.width), height: UInt32(self.height)))
+
+            for drawcall in self.drawCalls {
+                // First check if it a fullscreen effect
+                if !drawcall.isFullscreenEffect {
+                    if !drawcall.isCommand {
+                        guard let meshDrawCall = drawcall as? MeshDrawCall else {
+                            continue
+                        }
+
+                        guard 
+                            let material = self.materials.first(where: { $0.id == meshDrawCall.materialId }),
+                            let mesh = self.meshes.first(where: { $0.id == meshDrawCall.meshId })
+                        else {
+                            continue
+                        }
+
+                        $0.bind(to: material.pipeline)
+                        $0.bind(to: mesh.vertexBuffer)
+                        $0.draw(numVertices: mesh.vertexBuffer.count, numInstaces: 1, offset: 0, firstInstance: 0)  
+                    }
+                }
+
+            }
         }
 
         mainQueue.submit(
@@ -78,6 +134,8 @@ public class Renderer {
             renderSemaphore: &renderSemaphore, 
             swapchainImageIndex: &swapchainImageIndex
         )
+
+        drawCalls = []
     }
 
     public func execute(drawCall: DrawCall) {
@@ -85,14 +143,42 @@ public class Renderer {
         drawCalls.sort(by: { $0.key < $1.key })
     }
 
-    public func compileShader(at path: String) {
+    public func compileShader(at path: String) -> UInt32 {
         let shader = try! shaderCompiler.compile(at: path)
+        shaders.append(shader)
         log(level: .info, message: "Shader: \(shader)")
+
+        return shader.id
     }
 
-    internal func setup(window: UnsafeMutableRawPointer, width: UInt32, height: UInt32) {
+    public func uploadImage() -> Void {
         
     }
+
+    public func uploadMesh(mesh: MeshData) -> UInt32 {
+        let vertBuffer = device.createVertexBuffer(with: mesh.vertices)
+        let indexBuffer = device.createIndexBuffer(with: mesh.indices)
+
+        let mesh = Mesh(vertexBuffer: vertBuffer, indexBuffer: indexBuffer)
+        meshes.append(mesh)
+
+        return mesh.id
+    }
+}
+
+// MARK: Create extension
+extension Renderer {
+
+    private func createPipeline(vertexShader: Shader, pixelShader: Shader) -> UInt32 {
+        let pipeline = Pipeline(device: device, vertexShader: vertexShader, pixelShader: pixelShader, renderPass: mainRenderPass)
+        pipelines.append(pipeline)
+
+        return pipeline.id
+    }
+}
+
+// MARK: Initialiser extension
+extension Renderer {
 
     private func initInstance(window: Window) {
         var app = VkApplicationInfo()
@@ -114,16 +200,19 @@ public class Renderer {
 
         var sdlExts: UnsafeMutablePointer<UnsafePointer<CChar>?> = .allocate(capacity: Int(sdlExtCount.pointee))
         SDL_Vulkan_GetInstanceExtensions(window.windowPtr, sdlExtCount, sdlExts)
+        var infoPtr = UnsafeMutablePointer<VkApplicationInfo>.allocate(capacity: 1)
+        infoPtr.initialize(to: app)
 
-        var info = VkInstanceCreateInfo()
-        info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO
-        info.enabledExtensionCount = sdlExtCount.pointee
-        info.ppEnabledExtensionNames = UnsafePointer<UnsafePointer<CChar>?>(sdlExts)
-        info.enabledLayerCount = 0
-
-        withUnsafePointer(to: &app) {
-            info.pApplicationInfo = $0
-        }
+        var info = VkInstanceCreateInfo(
+            sType: VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            pApplicationInfo: infoPtr, 
+            enabledLayerCount: 0, 
+            ppEnabledLayerNames: nil,
+            enabledExtensionCount: sdlExtCount.pointee, 
+            ppEnabledExtensionNames:  UnsafePointer<UnsafePointer<CChar>?>(sdlExts)
+        )
 
         vkHandleSafe(vkCreateInstance(&info, nil, vkInstance))
 

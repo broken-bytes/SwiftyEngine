@@ -1,7 +1,10 @@
 import Core
+import Foundation
 import ECS
 import Rendering
-import WinSDK
+
+fileprivate var meshId: UInt32!
+fileprivate var materialId: UInt32!
 
 public class GameKit {
 
@@ -42,7 +45,34 @@ public class GameKit {
             log(level: .error, message: "\($0)")
         }
 
-        Renderer.shared.compileShader(at: "H:/Projects/SwiftTest/Compiled/Shaders/default.ps.spv")
+        let vertexShader = Renderer.shared.compileShader(at: "H:/Projects/SwiftTest/Compiled/Shaders/default.vs.spv")
+        let pixelShader = Renderer.shared.compileShader(at: "H:/Projects/SwiftTest/Compiled/Shaders/default.ps.spv")
+        let material = Renderer.shared.createMaterial(vertexShaderId: vertexShader, pixelShaderId: pixelShader)
+
+        log(level: .info, message: "\(material)")
+
+        let vertices: [Vertex] = [
+            Vertex(
+                position: Vector3(x: 0, y: -0.5, z: 0),
+                uv: Vector2(x: 0, y: 0),
+                color: Color(r: 0, g: 1, b: 1, a: 1)
+            ),
+            Vertex(
+                position: Vector3(x: 0.5, y: 0.5, z: 0),
+                uv: Vector2(x: 0, y: 0),
+                color: Color(r: 1, g: 1, b: 1, a: 1)
+            ),
+            Vertex(
+                position: Vector3(x: -0.5, y: 0.5, z: 0),
+                uv: Vector2(x: 0, y: 0),
+                color: Color(r: 1, g: 1, b: 0, a: 1)
+            ),
+        ]
+
+        let mesh = MeshData(vertices: vertices, indices: [0])
+
+        meshId = Renderer.shared.uploadMesh(mesh: mesh)
+        materialId = material
     }
 
     public func start() {
@@ -51,6 +81,16 @@ public class GameKit {
 
     public func update() {
         Window.processWindowEvents()   
+        Renderer.shared.execute(
+            drawCall: MeshDrawCall(
+                viewportId: 0, 
+                layer: 0, 
+                translucency: 0, 
+                materialId: materialId, 
+                depth: 0, 
+                meshId: meshId, 
+                transform: Transform(position: .zero, rotation: .zero, scale: .zero)
+        ))
         Renderer.shared.update()
         Renderer.shared.render()
 

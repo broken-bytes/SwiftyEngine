@@ -66,6 +66,15 @@ class CommandBuffer {
         vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.vkPipeline)
     }
 
+    func bind(to buffer: VertexBuffer) {
+        var offsets: [UInt64] = [0]
+        vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &buffer.vkBuffer, &offsets)
+    }
+
+    func draw(numVertices: UInt32, numInstaces: UInt32, offset: UInt32, firstInstance: UInt32) {
+        vkCmdDraw(vkCommandBuffer, numVertices, numInstaces, offset, firstInstance)
+    }
+
     func set(clearColor color: VkClearValue) {
         self.clearColor = color
     }

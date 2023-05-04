@@ -53,7 +53,7 @@ let package = Package(
         ),
         .target(
             name: "Rendering",
-            dependencies: ["Core", "SDL", "Vulkan"],
+            dependencies: ["Core", "FreeImage", "SDL", "Vulkan"],
             path: "Sources/Rendering",
             swiftSettings: [
                 .unsafeFlags(["-emit-module"]),
@@ -64,11 +64,17 @@ let package = Package(
                 .unsafeFlags(["-L", "E:/libs/SDL/lib/x64"]),
                 .unsafeFlags(["-l", "SDL2.lib"]),
                 .unsafeFlags(["-l", "SDL2main.lib"]),
+                .unsafeFlags(["-L", "E:/libs/FreeImage/Dist/x64"]),
+                .unsafeFlags(["-l", "FreeImage"]),
             ]
         ),
         .target(
             name: "Flecs",
             path: "Sources/Vendor/Flecs"
+        ),
+        .target(
+            name: "FreeImage",
+            path: "Sources/Vendor/FreeImage"
         ),
         .target(
             name: "SDL",

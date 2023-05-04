@@ -1,11 +1,12 @@
 import Core
+import Foundation
 
 public class Texture {
 
-    internal let textureId: UInt64
+    internal let uuid: UUID
     
     public init(width: UInt16, height: UInt16, bytes: [UInt8]) {
-        self.textureId = 0
+        uuid = UUID()
     }
 
     public convenience init(width: UInt16, height: UInt16) {
@@ -13,6 +14,7 @@ public class Texture {
     }
 
     public func pixelColor(x: UInt16, y: UInt16) -> Color {
+        // TODO: Implement readback for certain textures
         return .red
     }
 }

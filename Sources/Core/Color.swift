@@ -5,6 +5,18 @@ public struct Color {
     public let b: Float
     public let a: Float
 
+    public init(
+        r: Float,
+        g: Float,
+        b: Float,
+        a: Float
+    ) {
+        self.r = r
+        self.g = g
+        self.b = b
+        self.a = a
+    }
+
     public static let red = Color(r: 1, g: 0, b: 0, a: 1)
     public static let green = Color(r: 0, g: 1, b: 0, a: 1)
     public static let blue = Color(r: 0, g: 0, b: 1, a: 1)

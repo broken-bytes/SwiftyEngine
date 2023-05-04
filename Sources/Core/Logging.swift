@@ -7,11 +7,8 @@ public enum LogLevel {
     case error
 }
 
-#if os(Windows)
-import WinSDK
-
 public func initLogger() {
-   
+
 }
 
 public func log(level: LogLevel, message: String) {
@@ -26,23 +23,4 @@ public func log(level: LogLevel, message: String) {
             print("ERROR: \(Date().debugDescription) \(message)")
     }
 }
-#endif
-
-#if os(macOS)
-public func initLogger() {
-}
-
-public func log(level: LogLevel, message: String) {
-    switch level {
-        case .info:
-            print("INFO: \(Date().debugDescription) \(message)")
-        case .debug:
-            print("DEBUG: \(Date().debugDescription) \(message)")
-        case .warn:
-            print("WARN: \(Date().debugDescription) \(message)")
-        case .error:
-            print("ERROR: \(Date().debugDescription) \(message)")
-    }
-}
-#endif
 

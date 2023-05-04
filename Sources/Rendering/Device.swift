@@ -2,6 +2,10 @@ import DXC
 import SDL
 import Vulkan
 
+enum MemoryError: Error {
+    case noSuitableMemoryType
+}
+
 class Device {
 
     internal var device: VkDevice?
@@ -13,44 +17,57 @@ class Device {
         var props: UnsafeMutablePointer<VkQueueFamilyProperties> = .allocate(capacity: Int(count))
         vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &count, props)
 
-        var prios: [Float] = [1.0]
+        let prios: UnsafeMutablePointer<Float> = .allocate(capacity: 1)
+        prios.initialize(to: 1)
 
-        var qInfo = VkDeviceQueueCreateInfo()
+        var qInfo: UnsafeMutablePointer<VkDeviceQueueCreateInfo> = .allocate(capacity: 1)
+        qInfo.initialize(to: VkDeviceQueueCreateInfo(
+            sType: VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            queueFamilyIndex: 0, 
+            queueCount: 1, 
+            pQueuePriorities: prios
+        ))
 
-        var enabledExtensions: [UnsafePointer<Int8>?] = []
+        let enabledExtensions: UnsafeMutablePointer<UnsafePointer<Int8>?> = .allocate(capacity: 1)
+
         VK_KHR_SWAPCHAIN_EXTENSION_NAME.withCString {
-            enabledExtensions.append($0)
+            enabledExtensions.initialize(to: $0)
         }
 
-        prios.withUnsafeBufferPointer {
-            qInfo.pQueuePriorities = $0.baseAddress
-        }
-        qInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO
-        qInfo.pNext = nil
-        qInfo.queueCount = props.pointee.queueCount
-        qInfo.queueFamilyIndex = 0
-        var info = VkDeviceCreateInfo()
-        info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO
-        info.enabledExtensionCount = 1
-        info.enabledLayerCount = 0
-        enabledExtensions.withUnsafeBufferPointer {
-            info.ppEnabledExtensionNames = $0.baseAddress!
-        }
-        
-        info.ppEnabledLayerNames = nil
-        info.queueCreateInfoCount = 1
-        withUnsafePointer(to: &qInfo) {
-            info.pQueueCreateInfos = $0
-        }
+        var info = VkDeviceCreateInfo(
+            sType: VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            queueCreateInfoCount: 1, 
+            pQueueCreateInfos: qInfo, 
+            enabledLayerCount: 0, 
+            ppEnabledLayerNames: nil, 
+            enabledExtensionCount: 0, 
+            ppEnabledExtensionNames: enabledExtensions, 
+            pEnabledFeatures: nil
+        )
 
         vkHandleSafe(vkCreateDevice(physicalDevice, &info, nil, &device))
         self.physicalDevice = physicalDevice
+
+        defer { 
+            prios.deallocate()
+            enabledExtensions.deallocate()
+            props.deallocate()
+        }
     }
 
     deinit {
         vkDestroyDevice(device, nil)
     }
 
-    func compileShader(shader: String) {
+    func createVertexBuffer(with vertices: [Vertex]) -> VertexBuffer {
+        VertexBuffer(device: self, with: vertices)
+    }
+
+    func createIndexBuffer(with indices: [UInt32]) -> IndexBuffer {
+        IndexBuffer(device: self, with: indices)
     }
 }

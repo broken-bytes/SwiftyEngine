@@ -1,12 +1,22 @@
+import Core
 import Vulkan
 
-class Pipeline {
+class Pipeline: Identifiable {
+    typealias ID = UInt32
 
+    private static var pipelineIds: [ID] = []
+
+    let id: ID
     var vkPipeline: VkPipeline?
     var device: Device
+    var vertexShader: Shader
+    var pixelShader: Shader
 
     init(device: Device, vertexShader: Shader, pixelShader: Shader, renderPass: RenderPass) {
+        self.id = Pipeline.pipelineIds.nextFreeValue
         self.device = device
+        self.vertexShader = vertexShader
+        self.pixelShader = pixelShader
 
         let stage = PipelineStage(vertexShader: vertexShader, pixelShader: pixelShader)
         let layout = PipelineLayout(device: device)
@@ -19,6 +29,8 @@ class Pipeline {
         var dynamicState = VkPipelineDynamicStateCreateInfo()
         dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         dynamicState.dynamicStateCount = UInt32(dynamics.count)
+
+        log(level: .info, message: "Dynamic: \(UInt32(dynamics.count))")
 
         dynamics.withUnsafeBufferPointer {
             dynamicState.pDynamicStates = $0.baseAddress
@@ -48,6 +60,8 @@ class Pipeline {
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL
         rasterizer.lineWidth = 1.0
         rasterizer.cullMode = UInt32(VK_CULL_MODE_BACK_BIT.rawValue)
+        log(level: .info, message: "Cull: \(UInt32(VK_CULL_MODE_BACK_BIT.rawValue))")
+
         rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE
         rasterizer.depthBiasEnable = VK_FALSE;
         rasterizer.depthBiasConstantFactor = 0.0 // Optional
@@ -89,6 +103,8 @@ class Pipeline {
         var pipelineInfo = VkGraphicsPipelineCreateInfo()
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO
         pipelineInfo.stageCount = UInt32(stage.stages.count)
+        log(level: .info, message: "Cull: \(UInt32(stage.stages.count))")
+
         stage.stages.withUnsafeBufferPointer {
             pipelineInfo.pStages = $0.baseAddress
         }
@@ -122,13 +138,72 @@ class Pipeline {
         withUnsafePointer(to: &dynamicState) {
             pipelineInfo.pDynamicState = $0
         }
+    
+        var bindingDescriptions = [
+            VkVertexInputBindingDescription(
+                binding: 0, 
+                stride: UInt32(MemoryLayout<Float>.size * 3), 
+                inputRate: VK_VERTEX_INPUT_RATE_VERTEX
+            ),
+            VkVertexInputBindingDescription(
+                binding: 1, 
+                stride: UInt32(MemoryLayout<Float>.size * 2), 
+                inputRate: VK_VERTEX_INPUT_RATE_VERTEX
+            ),
+            VkVertexInputBindingDescription(
+                binding: 2, 
+                stride: UInt32(MemoryLayout<Float>.size * 4), 
+                inputRate: VK_VERTEX_INPUT_RATE_VERTEX
+            )         
+        ]
+
+        var attributes: [VkVertexInputAttributeDescription] = [
+            VkVertexInputAttributeDescription(
+                location: 0, 
+                binding: bindingDescriptions[0].binding, 
+                format: VK_FORMAT_R32G32B32_SFLOAT, 
+                offset: 0
+            ),
+            VkVertexInputAttributeDescription(
+                location: 1, 
+                binding: bindingDescriptions[1].binding, 
+                format: VK_FORMAT_R32G32_SFLOAT, 
+                offset: 12
+            ),
+            VkVertexInputAttributeDescription(
+                location: 2, 
+                binding: bindingDescriptions[2].binding, 
+                format: VK_FORMAT_R32G32B32A32_SFLOAT, 
+                offset: 20
+            ),
+        ]
+
+        log(level: .info, message: "Desc: \(UInt32(bindingDescriptions.count))")
+        log(level: .info, message: "Attr: \(UInt32(attributes.count))")
+
+        var vertexInputStateInfo = 
+            VkPipelineVertexInputStateCreateInfo(
+                sType: VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, 
+                pNext: nil, 
+                flags: 0, 
+                vertexBindingDescriptionCount: UInt32(bindingDescriptions.count),
+                pVertexBindingDescriptions: bindingDescriptions.withUnsafeBufferPointer {
+                    $0.baseAddress
+                },
+                vertexAttributeDescriptionCount: UInt32(attributes.count), 
+                pVertexAttributeDescriptions: attributes.withUnsafeBufferPointer {
+                    $0.baseAddress
+                }
+            )
 
         pipelineInfo.layout = layout.vkPipelineLayout
         pipelineInfo.renderPass = renderPass.vkRenderPass
         pipelineInfo.subpass = 0
         pipelineInfo.basePipelineHandle = nil // Optional
         pipelineInfo.basePipelineIndex = -1 // Optional
-
+        withUnsafePointer(to: vertexInputStateInfo) {
+            pipelineInfo.pVertexInputState = $0
+        }
         vkHandleSafe(vkCreateGraphicsPipelines(device.device, nil, 1, &pipelineInfo, nil, &vkPipeline))
     }
 
