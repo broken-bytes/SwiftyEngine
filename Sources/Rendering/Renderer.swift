@@ -66,6 +66,9 @@ public class Renderer {
             fatalError("Shaders not found")
         }
 
+        print(vs.id)
+        print(ps.id)
+
         if pipeline == nil {
             let newPipeline = Pipeline(device: device, vertexShader: vs, pixelShader: ps, renderPass: mainRenderPass)
             pipelines.append(newPipeline)
@@ -76,6 +79,7 @@ public class Renderer {
             fatalError("Created Pipeline is nil")
         }
         
+
         let material = Material(vertexShader: vs, pixelShader: ps, pipeline: pipeline)
         materials.append(material)
 

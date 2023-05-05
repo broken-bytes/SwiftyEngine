@@ -14,6 +14,7 @@ class Pipeline: Identifiable {
 
     init(device: Device, vertexShader: Shader, pixelShader: Shader, renderPass: RenderPass) {
         self.id = Pipeline.pipelineIds.nextFreeValue
+        Pipeline.pipelineIds.append(id)
         self.device = device
         self.vertexShader = vertexShader
         self.pixelShader = pixelShader
@@ -21,125 +22,135 @@ class Pipeline: Identifiable {
         let stage = PipelineStage(vertexShader: vertexShader, pixelShader: pixelShader)
         let layout = PipelineLayout(device: device)
 
-        var dynamics = [
+        let dynamics = [
             VK_DYNAMIC_STATE_VIEWPORT,
             VK_DYNAMIC_STATE_SCISSOR
         ]
 
-        var dynamicState = VkPipelineDynamicStateCreateInfo()
-        dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-        dynamicState.dynamicStateCount = UInt32(dynamics.count)
+        let dynamicsPtr: UnsafeMutablePointer<VkDynamicState> = .allocate(capacity: 2)
+        dynamicsPtr[0] =  dynamics[0]
+        dynamicsPtr[1] =  dynamics[1]
+
+        var dynamicState = VkPipelineDynamicStateCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            dynamicStateCount: UInt32(dynamics.count), 
+            pDynamicStates: dynamicsPtr
+        )
 
         log(level: .info, message: "Dynamic: \(UInt32(dynamics.count))")
 
-        dynamics.withUnsafeBufferPointer {
-            dynamicState.pDynamicStates = $0.baseAddress
-        }
+        var vertexInputInfo = VkPipelineVertexInputStateCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            vertexBindingDescriptionCount: 0, 
+            pVertexBindingDescriptions: nil, 
+            vertexAttributeDescriptionCount: 0, 
+            pVertexAttributeDescriptions: nil
+        )
 
-        var vertexInputInfo = VkPipelineVertexInputStateCreateInfo()
-        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
-        vertexInputInfo.vertexBindingDescriptionCount = 0
-        vertexInputInfo.pVertexBindingDescriptions = nil // Optional
-        vertexInputInfo.vertexAttributeDescriptionCount = 0
-        vertexInputInfo.pVertexAttributeDescriptions = nil // Optional
+        var inputAssembly = VkPipelineInputAssemblyStateCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            topology: VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 
+            primitiveRestartEnable: VK_FALSE
+        )
 
-        var inputAssembly = VkPipelineInputAssemblyStateCreateInfo()
-        inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
-        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
-        inputAssembly.primitiveRestartEnable = VK_FALSE
+        var viewportState = VkPipelineViewportStateCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            viewportCount: 1, 
+            pViewports: nil, 
+            scissorCount: 1, 
+            pScissors: nil
+        )
 
-        var viewportState = VkPipelineViewportStateCreateInfo()
-        viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO
-        viewportState.viewportCount = 1
-        viewportState.scissorCount = 1
+        var rasterizer = VkPipelineRasterizationStateCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            depthClampEnable: VK_FALSE, 
+            rasterizerDiscardEnable: VK_FALSE, 
+            polygonMode: VK_POLYGON_MODE_FILL, 
+            cullMode: UInt32(VK_CULL_MODE_BACK_BIT.rawValue), 
+            frontFace: VK_FRONT_FACE_CLOCKWISE, 
+            depthBiasEnable: VK_FALSE, 
+            depthBiasConstantFactor: 0, 
+            depthBiasClamp: 0, 
+            depthBiasSlopeFactor: 0, 
+            lineWidth: 1
+        )  
 
-        var rasterizer = VkPipelineRasterizationStateCreateInfo()
-        rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO
-        rasterizer.depthClampEnable = VK_FALSE
-        rasterizer.rasterizerDiscardEnable = VK_FALSE
-        rasterizer.polygonMode = VK_POLYGON_MODE_FILL
-        rasterizer.lineWidth = 1.0
-        rasterizer.cullMode = UInt32(VK_CULL_MODE_BACK_BIT.rawValue)
-        log(level: .info, message: "Cull: \(UInt32(VK_CULL_MODE_BACK_BIT.rawValue))")
+        var multisampling = VkPipelineMultisampleStateCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            rasterizationSamples: VK_SAMPLE_COUNT_1_BIT, 
+            sampleShadingEnable: VK_FALSE, 
+            minSampleShading: 1, 
+            pSampleMask: nil, 
+            alphaToCoverageEnable: VK_FALSE, 
+            alphaToOneEnable: VK_FALSE
+        )
 
-        rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE
-        rasterizer.depthBiasEnable = VK_FALSE;
-        rasterizer.depthBiasConstantFactor = 0.0 // Optional
-        rasterizer.depthBiasClamp = 0.0 // Optional
-        rasterizer.depthBiasSlopeFactor = 0.0 // Optional     
+        var colorBlendAttachment = VkPipelineColorBlendAttachmentState(
+            blendEnable: VK_FALSE, 
+            srcColorBlendFactor: VK_BLEND_FACTOR_ONE, 
+            dstColorBlendFactor: VK_BLEND_FACTOR_ZERO, 
+            colorBlendOp: VK_BLEND_OP_ADD, 
+            srcAlphaBlendFactor: VK_BLEND_FACTOR_ONE, 
+            dstAlphaBlendFactor: VK_BLEND_FACTOR_ZERO, 
+            alphaBlendOp: VK_BLEND_OP_ADD, 
+            colorWriteMask: UInt32(VK_COLOR_COMPONENT_R_BIT.rawValue | VK_COLOR_COMPONENT_G_BIT.rawValue | VK_COLOR_COMPONENT_B_BIT.rawValue | VK_COLOR_COMPONENT_A_BIT.rawValue)
+        )
 
-        var multisampling = VkPipelineMultisampleStateCreateInfo()
-        multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
-        multisampling.sampleShadingEnable = VK_FALSE
-        multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT
-        multisampling.minSampleShading = 1.0 // Optional
-        multisampling.pSampleMask = nil // Optional
-        multisampling.alphaToCoverageEnable = VK_FALSE // Optional
-        multisampling.alphaToOneEnable = VK_FALSE // Optional
+        let colAttPtr: UnsafeMutablePointer<VkPipelineColorBlendAttachmentState> = .allocate(capacity: 1)
+        colAttPtr.initialize(to: colorBlendAttachment)
 
-        var colorBlendAttachment = VkPipelineColorBlendAttachmentState()
-        colorBlendAttachment.colorWriteMask = UInt32(VK_COLOR_COMPONENT_R_BIT.rawValue | VK_COLOR_COMPONENT_G_BIT.rawValue | VK_COLOR_COMPONENT_B_BIT.rawValue | VK_COLOR_COMPONENT_A_BIT.rawValue)
-        colorBlendAttachment.blendEnable = VK_FALSE
-        colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE // Optional
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO // Optional
-        colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD // Optional
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE // Optional
-        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO // Optional
-        colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD // Optional
+        var colorBlending = VkPipelineColorBlendStateCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            logicOpEnable: VK_FALSE, 
+            logicOp: VK_LOGIC_OP_COPY, 
+            attachmentCount: 1, 
+            pAttachments: colAttPtr, 
+            blendConstants: (0, 0, 0, 0)
+        )
 
-        var colorBlending = VkPipelineColorBlendStateCreateInfo()
-        colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO
-        colorBlending.logicOpEnable = VK_FALSE
-        colorBlending.logicOp = VK_LOGIC_OP_COPY // Optional
-        colorBlending.attachmentCount = 1
-        withUnsafePointer(to: &colorBlendAttachment) {
-            colorBlending.pAttachments = $0
-        }
-        colorBlending.blendConstants.0 = 0.0 // Optional
-        colorBlending.blendConstants.1 = 0.0 // Optional
-        colorBlending.blendConstants.2 = 0.0 // Optional
-        colorBlending.blendConstants.3 = 0.0 // Optional
+        let stagesPtr = UnsafeMutablePointer<VkPipelineShaderStageCreateInfo>.allocate(capacity: 2)
 
-        var pipelineInfo = VkGraphicsPipelineCreateInfo()
-        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO
-        pipelineInfo.stageCount = UInt32(stage.stages.count)
+        stagesPtr[0] = stage.stages[0]
+        stagesPtr[1] = stage.stages[1]
+
+        let vertPtr = UnsafeMutablePointer<VkPipelineVertexInputStateCreateInfo>.allocate(capacity: 1)
+        vertPtr.initialize(to: vertexInputInfo)
+
+        let inpPtr = UnsafeMutablePointer<VkPipelineInputAssemblyStateCreateInfo>.allocate(capacity: 1)
+        inpPtr.initialize(to: inputAssembly)
+
+        let viewPtr = UnsafeMutablePointer<VkPipelineViewportStateCreateInfo>.allocate(capacity: 1)
+        viewPtr.initialize(to: viewportState)
+
+        let rastPtr = UnsafeMutablePointer<VkPipelineRasterizationStateCreateInfo>.allocate(capacity: 1)
+        rastPtr.initialize(to: rasterizer)
+
+        let multPtr = UnsafeMutablePointer<VkPipelineMultisampleStateCreateInfo>.allocate(capacity: 1)
+        multPtr.initialize(to: multisampling)
+
+        let colPtr = UnsafeMutablePointer<VkPipelineColorBlendStateCreateInfo>.allocate(capacity: 1)
+        colPtr.initialize(to: colorBlending)
+
+        let dynPtr = UnsafeMutablePointer<VkPipelineDynamicStateCreateInfo>.allocate(capacity: 1)
+        dynPtr.initialize(to: dynamicState)    
+
         log(level: .info, message: "Cull: \(UInt32(stage.stages.count))")
-
-        stage.stages.withUnsafeBufferPointer {
-            pipelineInfo.pStages = $0.baseAddress
-        }
-
-        withUnsafePointer(to: &vertexInputInfo) {
-            pipelineInfo.pVertexInputState = $0
-        }
-
-        withUnsafePointer(to: &inputAssembly) {
-            pipelineInfo.pInputAssemblyState = $0
-        }
-
-        withUnsafePointer(to: &viewportState) {
-            pipelineInfo.pViewportState = $0
-        }
-
-        withUnsafePointer(to: &rasterizer) {
-            pipelineInfo.pRasterizationState = $0
-        }
-
-        withUnsafePointer(to: &multisampling) {
-            pipelineInfo.pMultisampleState = $0
-        }
-
-        pipelineInfo.pDepthStencilState = nil
-
-        withUnsafePointer(to: &colorBlending) {
-            pipelineInfo.pColorBlendState = $0
-        }
-
-        withUnsafePointer(to: &dynamicState) {
-            pipelineInfo.pDynamicState = $0
-        }
     
-        var bindingDescriptions = [
+        let bindingDescriptions = [
             VkVertexInputBindingDescription(
                 binding: 0, 
                 stride: UInt32(MemoryLayout<Float>.size * 3), 
@@ -157,7 +168,7 @@ class Pipeline: Identifiable {
             )         
         ]
 
-        var attributes: [VkVertexInputAttributeDescription] = [
+        let attributes: [VkVertexInputAttributeDescription] = [
             VkVertexInputAttributeDescription(
                 location: 0, 
                 binding: bindingDescriptions[0].binding, 
@@ -181,29 +192,50 @@ class Pipeline: Identifiable {
         log(level: .info, message: "Desc: \(UInt32(bindingDescriptions.count))")
         log(level: .info, message: "Attr: \(UInt32(attributes.count))")
 
-        var vertexInputStateInfo = 
-            VkPipelineVertexInputStateCreateInfo(
-                sType: VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, 
-                pNext: nil, 
-                flags: 0, 
-                vertexBindingDescriptionCount: UInt32(bindingDescriptions.count),
-                pVertexBindingDescriptions: bindingDescriptions.withUnsafeBufferPointer {
-                    $0.baseAddress
-                },
-                vertexAttributeDescriptionCount: UInt32(attributes.count), 
-                pVertexAttributeDescriptions: attributes.withUnsafeBufferPointer {
-                    $0.baseAddress
-                }
-            )
+        let bindings = UnsafeMutablePointer<VkVertexInputBindingDescription>.allocate(capacity: 3)
+        bindings[0] = bindingDescriptions[0]
+        bindings[1] = bindingDescriptions[1]
+        bindings[2] = bindingDescriptions[2]
 
-        pipelineInfo.layout = layout.vkPipelineLayout
-        pipelineInfo.renderPass = renderPass.vkRenderPass
-        pipelineInfo.subpass = 0
-        pipelineInfo.basePipelineHandle = nil // Optional
-        pipelineInfo.basePipelineIndex = -1 // Optional
-        withUnsafePointer(to: vertexInputStateInfo) {
-            pipelineInfo.pVertexInputState = $0
-        }
+        let attrPtr = UnsafeMutablePointer<VkVertexInputAttributeDescription>.allocate(capacity: 3)
+        attrPtr[0] = attributes[0]
+        attrPtr[1] = attributes[1]
+        attrPtr[2] = attributes[2]
+
+        let vertexInputStateInfo = VkPipelineVertexInputStateCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, 
+            pNext: nil,
+            flags: 0, 
+            vertexBindingDescriptionCount: UInt32(bindingDescriptions.count),
+            pVertexBindingDescriptions: bindings,
+            vertexAttributeDescriptionCount: UInt32(attributes.count), 
+            pVertexAttributeDescriptions: attrPtr
+        )
+
+        let vertStatePtr = UnsafeMutablePointer<VkPipelineVertexInputStateCreateInfo>.allocate(capacity: 1)
+        vertStatePtr.initialize(to: vertexInputStateInfo)
+
+        var pipelineInfo = VkGraphicsPipelineCreateInfo(
+            sType: VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            stageCount: UInt32(stage.stages.count), 
+            pStages: stagesPtr, 
+            pVertexInputState: vertPtr, 
+            pInputAssemblyState: inpPtr, 
+            pTessellationState: nil, 
+            pViewportState: viewPtr, 
+            pRasterizationState: rastPtr, 
+            pMultisampleState: multPtr, 
+            pDepthStencilState: nil, 
+            pColorBlendState: colPtr, 
+            pDynamicState: dynPtr, 
+            layout: layout.vkPipelineLayout, 
+            renderPass: renderPass.vkRenderPass, 
+            subpass: 0, 
+            basePipelineHandle: nil, 
+            basePipelineIndex: -1
+        )
         vkHandleSafe(vkCreateGraphicsPipelines(device.device, nil, 1, &pipelineInfo, nil, &vkPipeline))
     }
 

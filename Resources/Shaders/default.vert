@@ -28,11 +28,3 @@ VSOutput VSMain(VSInput input, uint VertexIndex : SV_VertexID)
 	output.Position = float4(input.Position, 1);
 	return output;
 }
-
-struct PSOutput {
-    float4 Color: SV_COLOR;
-};
-
-float4 PSMain(VSOutput output) : SV_TARGET {
-    return float4(output.Color);
-}

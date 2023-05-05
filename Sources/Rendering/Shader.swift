@@ -13,6 +13,7 @@ public class Shader: Identifiable {
 
     init(module: VkShaderModule, device: Device) {
         id = Shader.shaderIds.nextFreeValue
+        Shader.shaderIds.append(id)
         self.module = module
         self.device = device
     }

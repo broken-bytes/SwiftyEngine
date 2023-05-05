@@ -44,7 +44,7 @@ class Device {
             pQueueCreateInfos: qInfo, 
             enabledLayerCount: 0, 
             ppEnabledLayerNames: nil, 
-            enabledExtensionCount: 0, 
+            enabledExtensionCount: 1, 
             ppEnabledExtensionNames: enabledExtensions, 
             pEnabledFeatures: nil
         )

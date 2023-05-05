@@ -21,13 +21,13 @@ class ShaderCompiler {
             throw ShaderError.shaderNotFound
         }
 
-        var createInfo = VkShaderModuleCreateInfo()
-        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO
-        createInfo.pNext = nil
-        
-        // Ensure code sise is always multiple of 4
-        createInfo.codeSize = (data.length) + ((data.length) % 4)
-        createInfo.pCode = data.bytes.assumingMemoryBound(to: UInt32.self)
+        var createInfo = VkShaderModuleCreateInfo(
+            sType: VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            codeSize: (data.length) + ((data.length) % 4), 
+            pCode: data.bytes.assumingMemoryBound(to: UInt32.self)
+        )
 
         var shaderModule: VkShaderModule?
         vkHandleSafe(vkCreateShaderModule(device.device, &createInfo, nil, &shaderModule))

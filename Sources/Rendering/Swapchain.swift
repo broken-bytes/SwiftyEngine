@@ -3,7 +3,7 @@ import Vulkan
 
 class Swapchain {
 
-    var vkSwapchain: VkSwapchainKHR?
+    var vkSwapchain: VkSwapchainKHR? = nil
     var imageFormat: VkFormat
     var images: UnsafeMutableBufferPointer<VkImage?>!
     var imageViews: UnsafeMutableBufferPointer<VkImageView?>!
@@ -20,6 +20,7 @@ class Swapchain {
         self.imageFormat = imageFormat
         
         let queueFamilyIndices: UnsafeMutablePointer<UInt32> = .allocate(capacity: 1)
+        queueFamilyIndices.initialize(to: 0)
 
         log(level: .info, message: "Will get queues")
 
@@ -34,8 +35,7 @@ class Swapchain {
             imageExtent: VkExtent2D(width: caps.pointee.currentExtent.width, height: caps.pointee.currentExtent.height), 
             imageArrayLayers: 1, 
             imageUsage: UInt32(
-                VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT.rawValue |
-                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT.rawValue
+                VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT.rawValue
             ), 
             imageSharingMode: VK_SHARING_MODE_EXCLUSIVE, 
             queueFamilyIndexCount: 1, 
@@ -48,6 +48,8 @@ class Swapchain {
         )
         
         log(level: .info, message: "Will create swapchain")
+
+        print(info)
 
         vkHandleSafe(vkCreateSwapchainKHR(device, &info, nil, &vkSwapchain))
         log(level: .info, message: "Will get swapchain images")

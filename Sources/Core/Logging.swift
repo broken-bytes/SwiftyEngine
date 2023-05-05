@@ -1,10 +1,23 @@
 import Foundation
 
-public enum LogLevel {
-    case info
-    case debug
-    case warn
-    case error
+public enum LogLevel: String {
+    case info = "Info"
+    case debug = "Debug"
+    case warn = "Warn"
+    case error = "Error"
+
+    var shouldLog: Bool {
+        switch self {
+        case .info, .debug:
+            #if DEBUG
+            return true
+            #else
+            return false
+            #endif
+        case .warn, .error:
+            return true
+        }
+    }
 }
 
 public func initLogger() {
@@ -12,15 +25,8 @@ public func initLogger() {
 }
 
 public func log(level: LogLevel, message: String) {
-    switch level {
-        case .info:
-            print("INFO: \(Date().debugDescription) \(message)")
-        case .debug:
-            print("DEBUG: \(Date().debugDescription) \(message)")
-        case .warn:
-            print("WARN: \(Date().debugDescription) \(message)")
-        case .error:
-            print("ERROR: \(Date().debugDescription) \(message)")
+    if level.shouldLog {
+        print("\(level.rawValue): \(Date().debugDescription) \(message)")
     }
 }
 

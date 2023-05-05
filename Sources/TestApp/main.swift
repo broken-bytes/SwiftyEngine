@@ -1,7 +1,7 @@
-import Assembly
+import GameKit
 
-let assembly = Assembly()
+GameKit.shared.start()
 
 while true {
-    
+    GameKit.shared.update()    
 }

@@ -17,7 +17,7 @@ let package = Package(
         ),
         .executable(
             name: "TestApp", 
-            targets: ["TestApp"]
+            targets: ["TestApp", "GameKit"]
         )
     ],
     dependencies: [
@@ -25,6 +25,7 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "TestApp",
+            dependencies: ["GameKit"],
             linkerSettings: [
                 .unsafeFlags(["-I", "H:/Projects/SwiftTest/.build/x86_64-unknown-windows-msvc/debug"]),
                 .unsafeFlags(["-L", "H:/Projects/SwiftTest/.build/x86_64-unknown-windows-msvc/debug"]),

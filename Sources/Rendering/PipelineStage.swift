@@ -19,17 +19,24 @@ class PipelineStage {
             psMain = UnsafePointer(psMainPtr.assumingMemoryBound(to: Int8.self))
         }
 
-        var vertexShaderStageInfo = VkPipelineShaderStageCreateInfo()
-        vertexShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO
-        vertexShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT
-        vertexShaderStageInfo.module = vertexShader.module
-        vertexShaderStageInfo.pName = vsMain
-        var pixelShaderStageInfo = VkPipelineShaderStageCreateInfo()
-        pixelShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO
-        pixelShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT
-        pixelShaderStageInfo.module = pixelShader.module
-        pixelShaderStageInfo.pName = psMain
-        
+        let vertexShaderStageInfo = VkPipelineShaderStageCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            stage: VK_SHADER_STAGE_VERTEX_BIT, 
+            module: vertexShader.module, 
+            pName: vsMain, 
+            pSpecializationInfo: nil
+        )
+        let pixelShaderStageInfo = VkPipelineShaderStageCreateInfo(
+            sType: VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, 
+            pNext: nil, 
+            flags: 0, 
+            stage: VK_SHADER_STAGE_FRAGMENT_BIT, 
+            module: pixelShader.module, 
+            pName: psMain, 
+            pSpecializationInfo: nil
+        )   
 
         stages.append(vertexShaderStageInfo)
         stages.append(pixelShaderStageInfo)
