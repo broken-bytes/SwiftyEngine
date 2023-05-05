@@ -49,8 +49,6 @@ class Swapchain {
         
         log(level: .info, message: "Will create swapchain")
 
-        print(info)
-
         vkHandleSafe(vkCreateSwapchainKHR(device, &info, nil, &vkSwapchain))
         log(level: .info, message: "Will get swapchain images")
 

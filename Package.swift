@@ -33,6 +33,17 @@ let package = Package(
             ]
         ),
         .target(
+            name: "Audio",
+            dependencies: ["Core", "OpenAL", "SDL"],
+            path: "Sources/Audio",
+            linkerSettings: [
+                .unsafeFlags(["-L", "E:/libs/OpenAL/libs/Win64"]),
+                .unsafeFlags(["-L", "E:/libs/SDL/lib/x64"]),
+                .unsafeFlags(["-l", "OpenAL32.lib"]),
+                .unsafeFlags(["-l", "SDL2.lib"]),
+            ]
+        ),
+        .target(
             name: "Core",
             dependencies: ["Flecs", "SDL"],
             path: "Sources/Core",
@@ -49,7 +60,7 @@ let package = Package(
         ),
         .target(
             name: "GameKit",
-            dependencies: ["Core", "ECS", "Rendering"],
+            dependencies: ["Audio", "Core", "ECS", "Rendering"],
             path: "Sources/GameKit"
         ),
         .target(
@@ -76,6 +87,10 @@ let package = Package(
         .target(
             name: "FreeImage",
             path: "Sources/Vendor/FreeImage"
+        ),
+        .target(
+            name: "OpenAL",
+            path: "Sources/Vendor/OpenAL"
         ),
         .target(
             name: "SDL",

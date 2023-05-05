@@ -1,3 +1,4 @@
+import Audio
 import Core
 import Foundation
 import ECS
@@ -76,6 +77,18 @@ public class GameKit {
     }
 
     public func start() {
+        AudioEngine.shared.start()
+        AudioEngine.shared.setListener(position: .zero, rotation: .zero)
+        AudioEngine.shared.setVolume(0.05)
+        let clip = try! AudioEngine.shared.createClip(from: "H:/Projects/SwiftTest/Resources/Audio/laser.wav")
+        let source = AudioEngine.shared.createSource()
+        source.setGain(0.1)
+        source.setPitch(1)
+        source.setClip(clip)
+        source.isLooping = false
+        source.setPosition(.zero)
+        AudioEngine.shared.play(clip: clip, on: source)
+        source.play()
         //mainThread.start()
     }
 
@@ -93,6 +106,7 @@ public class GameKit {
         ))
         Renderer.shared.update()
         Renderer.shared.render()
+        AudioEngine.shared.update()
 
         /*
         mainThread.runOn {
