@@ -53,7 +53,7 @@ public class AudioEngine {
         var buffer: UnsafeMutablePointer<Int32> = .allocate(capacity: 1)
         alGenBuffers(1, buffer)
 
-        alBufferData(ALuint(buffer.pointee), sdlFormatToOpenALFormat(spec.pointee.format), bytes, Int32(len), spec.pointee.freq)
+        alBufferData(ALuint(buffer.pointee), sdlFormatToOpenALFormat(spec.pointee.format), bytes.pointee, Int32(len), spec.pointee.freq)
 
         return AudioClip(with: buffer)
     }

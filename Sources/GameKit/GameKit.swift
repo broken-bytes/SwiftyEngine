@@ -80,14 +80,13 @@ public class GameKit {
         AudioEngine.shared.start()
         AudioEngine.shared.setListener(position: .zero, rotation: .zero)
         AudioEngine.shared.setVolume(0.05)
-        let clip = try! AudioEngine.shared.createClip(from: "H:/Projects/SwiftTest/Resources/Audio/laser.wav")
+        let clip = try! AudioEngine.shared.createClip(from: "H:/Projects/SwiftTest/Resources/Audio/machinedeath.wav")
         let source = AudioEngine.shared.createSource()
         source.setGain(0.1)
         source.setPitch(1)
         source.setClip(clip)
         source.isLooping = false
         source.setPosition(.zero)
-        AudioEngine.shared.play(clip: clip, on: source)
         source.play()
         //mainThread.start()
     }
