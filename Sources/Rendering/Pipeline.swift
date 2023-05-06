@@ -133,22 +133,13 @@ class Pipeline: Identifiable {
         let dynPtr = UnsafeMutablePointer<VkPipelineDynamicStateCreateInfo>.allocate(capacity: 1)
         dynPtr.initialize(to: dynamicState)    
     
+        // TODO: BINDINGS MEAN DIFFERENT BUFFERS
         let bindingDescriptions = [
             VkVertexInputBindingDescription(
                 binding: 0, 
-                stride: UInt32(MemoryLayout<Float>.size * 3), 
+                stride: UInt32(MemoryLayout<Vertex>.size), 
                 inputRate: VK_VERTEX_INPUT_RATE_VERTEX
-            ),
-            VkVertexInputBindingDescription(
-                binding: 1, 
-                stride: UInt32(MemoryLayout<Float>.size * 2), 
-                inputRate: VK_VERTEX_INPUT_RATE_VERTEX
-            ),
-            VkVertexInputBindingDescription(
-                binding: 2, 
-                stride: UInt32(MemoryLayout<Float>.size * 4), 
-                inputRate: VK_VERTEX_INPUT_RATE_VERTEX
-            )         
+            ),      
         ]
 
         let attributes: [VkVertexInputAttributeDescription] = [
@@ -160,13 +151,13 @@ class Pipeline: Identifiable {
             ),
             VkVertexInputAttributeDescription(
                 location: 1, 
-                binding: bindingDescriptions[1].binding, 
+                binding: bindingDescriptions[0].binding, 
                 format: VK_FORMAT_R32G32_SFLOAT, 
                 offset: 12
             ),
             VkVertexInputAttributeDescription(
                 location: 2, 
-                binding: bindingDescriptions[2].binding, 
+                binding: bindingDescriptions[0].binding, 
                 format: VK_FORMAT_R32G32B32A32_SFLOAT, 
                 offset: 20
             ),
@@ -174,8 +165,6 @@ class Pipeline: Identifiable {
 
         let bindings = UnsafeMutablePointer<VkVertexInputBindingDescription>.allocate(capacity: 3)
         bindings[0] = bindingDescriptions[0]
-        bindings[1] = bindingDescriptions[1]
-        bindings[2] = bindingDescriptions[2]
 
         let attrPtr = UnsafeMutablePointer<VkVertexInputAttributeDescription>.allocate(capacity: 3)
         attrPtr[0] = attributes[0]
