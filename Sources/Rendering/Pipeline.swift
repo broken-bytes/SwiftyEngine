@@ -39,18 +39,6 @@ class Pipeline: Identifiable {
             pDynamicStates: dynamicsPtr
         )
 
-        log(level: .info, message: "Dynamic: \(UInt32(dynamics.count))")
-
-        var vertexInputInfo = VkPipelineVertexInputStateCreateInfo(
-            sType: VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, 
-            pNext: nil, 
-            flags: 0, 
-            vertexBindingDescriptionCount: 0, 
-            pVertexBindingDescriptions: nil, 
-            vertexAttributeDescriptionCount: 0, 
-            pVertexAttributeDescriptions: nil
-        )
-
         var inputAssembly = VkPipelineInputAssemblyStateCreateInfo(
             sType: VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO, 
             pNext: nil, 
@@ -127,9 +115,6 @@ class Pipeline: Identifiable {
         stagesPtr[0] = stage.stages[0]
         stagesPtr[1] = stage.stages[1]
 
-        let vertPtr = UnsafeMutablePointer<VkPipelineVertexInputStateCreateInfo>.allocate(capacity: 1)
-        vertPtr.initialize(to: vertexInputInfo)
-
         let inpPtr = UnsafeMutablePointer<VkPipelineInputAssemblyStateCreateInfo>.allocate(capacity: 1)
         inpPtr.initialize(to: inputAssembly)
 
@@ -147,8 +132,6 @@ class Pipeline: Identifiable {
 
         let dynPtr = UnsafeMutablePointer<VkPipelineDynamicStateCreateInfo>.allocate(capacity: 1)
         dynPtr.initialize(to: dynamicState)    
-
-        log(level: .info, message: "Cull: \(UInt32(stage.stages.count))")
     
         let bindingDescriptions = [
             VkVertexInputBindingDescription(
@@ -189,9 +172,6 @@ class Pipeline: Identifiable {
             ),
         ]
 
-        log(level: .info, message: "Desc: \(UInt32(bindingDescriptions.count))")
-        log(level: .info, message: "Attr: \(UInt32(attributes.count))")
-
         let bindings = UnsafeMutablePointer<VkVertexInputBindingDescription>.allocate(capacity: 3)
         bindings[0] = bindingDescriptions[0]
         bindings[1] = bindingDescriptions[1]
@@ -221,7 +201,7 @@ class Pipeline: Identifiable {
             flags: 0, 
             stageCount: UInt32(stage.stages.count), 
             pStages: stagesPtr, 
-            pVertexInputState: vertPtr, 
+            pVertexInputState: vertStatePtr, 
             pInputAssemblyState: inpPtr, 
             pTessellationState: nil, 
             pViewportState: viewPtr, 

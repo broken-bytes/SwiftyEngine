@@ -33,7 +33,7 @@ class Device {
         let enabledExtensions: UnsafeMutablePointer<UnsafePointer<Int8>?> = .allocate(capacity: 1)
 
         VK_KHR_SWAPCHAIN_EXTENSION_NAME.withCString {
-            enabledExtensions.initialize(to: $0)
+            enabledExtensions[0] = $0
         }
 
         var info = VkDeviceCreateInfo(

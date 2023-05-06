@@ -96,4 +96,5 @@
 #include "vulkan_beta.h"
 #endif
 
+#include "renderdoc_app.h"
 #endif // VULKAN_H_

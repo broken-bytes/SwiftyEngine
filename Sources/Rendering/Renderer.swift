@@ -3,6 +3,7 @@ import Foundation
 import SDL
 import ShaderCompiler
 import Vulkan
+import WinSDK
 
 public class Renderer {
 
@@ -31,7 +32,15 @@ public class Renderer {
     private var materials: [Material] = []
     private var meshes: [Mesh] = []
 
-    internal init() {}
+    internal init() {
+        var renderDoc: UnsafeMutablePointer<UnsafeMutableRawPointer?>? = .allocate(capacity: 1)
+        if let module = GetModuleHandleA("renderdoc.dll") {
+            var api = GetProcAddress(module, "RENDERDOC_GetAPI")
+            withUnsafeMutablePointer(to: &api) {
+                UnsafeMutableRawPointer($0).load(as: pRENDERDOC_GetAPI.self)(eRENDERDOC_API_Version_1_6_0, renderDoc)
+            }
+        }
+    }
 
     public func bind(to window: Window) {
         surface = .allocate(capacity: 1)
@@ -114,6 +123,7 @@ public class Renderer {
                             continue
                         }
 
+                        $0.set(scissor: Rect(x: 0, y: 0, width: UInt32(self.width), height: UInt32(self.height)))
                         $0.bind(to: material.pipeline)
                         $0.bind(to: mesh.vertexBuffer)
                         $0.draw(numVertices: mesh.vertexBuffer.count, numInstaces: 1, offset: 0, firstInstance: 0)  
@@ -147,8 +157,7 @@ public class Renderer {
     public func compileShader(at path: String) -> UInt32 {
         let shader = try! shaderCompiler.compile(at: path)
         shaders.append(shader)
-        log(level: .info, message: "Shader: \(shader)")
-
+        
         return shader.id
     }
 
@@ -199,8 +208,13 @@ extension Renderer {
         var sdlExtCount: UnsafeMutablePointer<UInt32> = .allocate(capacity: 1)
         SDL_Vulkan_GetInstanceExtensions(window.windowPtr, sdlExtCount, nil)
 
-        var sdlExts: UnsafeMutablePointer<UnsafePointer<CChar>?> = .allocate(capacity: Int(sdlExtCount.pointee))
+        var sdlExts: UnsafeMutablePointer<UnsafePointer<CChar>?> = .allocate(capacity: Int(sdlExtCount.pointee) + 1)
         SDL_Vulkan_GetInstanceExtensions(window.windowPtr, sdlExtCount, sdlExts)
+
+        VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME.withCString {
+            sdlExts[Int(sdlExtCount.pointee)] = $0
+        }
+
         var infoPtr = UnsafeMutablePointer<VkApplicationInfo>.allocate(capacity: 1)
         infoPtr.initialize(to: app)
 
@@ -211,15 +225,13 @@ extension Renderer {
             pApplicationInfo: infoPtr, 
             enabledLayerCount: 0, 
             ppEnabledLayerNames: nil,
-            enabledExtensionCount: sdlExtCount.pointee, 
+            enabledExtensionCount: sdlExtCount.pointee + 1, 
             ppEnabledExtensionNames:  UnsafePointer<UnsafePointer<CChar>?>(sdlExts)
         )
 
         vkHandleSafe(vkCreateInstance(&info, nil, vkInstance))
 
         SDL_Vulkan_GetDrawableSize(window.windowPtr, &width, &height)
-
-        log(level: .info, message: "Instance - Created")
     }
 
     private func initDevice() {
@@ -245,19 +257,16 @@ extension Renderer {
 
         let name = String.init(cString: namePtr)
         self.device = Device(physicalDevice: gpu, name: name)
-        log(level: .info, message: "Device - Created")
     }
 
     private func initQueues() {
         mainQueue = Queue(device: device, familyIndex: 0)
         commandPool = CommandPool(device: device, familyIndex: 0)
         mainCommandBuffer = CommandBuffer(device: device, commandPool: commandPool)
-        log(level: .info, message: "Queues - Created")
     }
 
     private func initSwapchain(window: Window) {
-        self.swapchain = Swapchain(width: UInt32(width), height: UInt32(height), device: device, surface: surface, buffers: frameBufferCount, imageFormat: VK_FORMAT_B8G8R8A8_SRGB)
-        log(level: .info, message: "Swapchain - Created")
+        self.swapchain = Swapchain(width: UInt32(width), height: UInt32(height), device: device, surface: surface, buffers: frameBufferCount, imageFormat: VK_FORMAT_B8G8R8A8_UNORM)
     }
 
     private func initRenderPasses() {
@@ -268,7 +277,6 @@ extension Renderer {
             useStencil: false,
             usedForPresenting: true
         )
-        log(level: .info, message: "Render Passes - Created")
     }
 
     private func initBuffers() {
@@ -282,7 +290,6 @@ extension Renderer {
             )
             frameBuffers.append(buffer)
         }
-        log(level: .info, message: "Buffers - Created")
     }
 
     private func findBestGPU() -> VkPhysicalDevice {

@@ -82,7 +82,6 @@ public class AudioEngine {
 fileprivate extension AudioEngine {
 
     func sdlFormatToOpenALFormat(_ format: SDL_AudioFormat) -> ALenum {
-        print(format)
         switch format {
         case UInt16(AUDIO_S16LSB):
             return AL_FORMAT_STEREO16

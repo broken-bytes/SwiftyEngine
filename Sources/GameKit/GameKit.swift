@@ -15,16 +15,8 @@ public class GameKit {
 
     private init() {
         initLogger()
-        log(level: .debug, message: "Main Thread - Creating")
-        log(level: .debug, message: "Main Thread - Created")
-        log(level: .debug, message: "Main Window - Creating")
         mainWindow = WindowManager.shared.makeWindow(width: 1200, height: 800, named: "MainWindow")
-        log(level: .debug, message: "Main Window - Created")
-        log(level: .debug, message: "Renderer - Binding")
         Renderer.shared.bind(to: self.mainWindow)
-        log(level: .debug, message: "Renderer - Bound")
-        log(level: .debug, message: "Main Thread - Starting")
-        log(level: .debug, message: "Main Thread - Started")
 
         signal(SIGABRT) { 
             log(level: .error, message: "\($0)")
@@ -49,8 +41,6 @@ public class GameKit {
         let vertexShader = Renderer.shared.compileShader(at: "H:/Projects/SwiftTest/Compiled/Shaders/default.vs.spv")
         let pixelShader = Renderer.shared.compileShader(at: "H:/Projects/SwiftTest/Compiled/Shaders/default.ps.spv")
         let material = Renderer.shared.createMaterial(vertexShaderId: vertexShader, pixelShaderId: pixelShader)
-
-        log(level: .info, message: "\(material)")
 
         let vertices: [Vertex] = [
             Vertex(
@@ -85,7 +75,7 @@ public class GameKit {
         source.setGain(0.1)
         source.setPitch(1)
         source.setClip(clip)
-        source.isLooping = false
+        source.isLooping = true
         source.setPosition(.zero)
         source.play()
         //mainThread.start()

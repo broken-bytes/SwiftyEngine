@@ -9,20 +9,22 @@ class Swapchain {
     var imageViews: UnsafeMutableBufferPointer<VkImageView?>!
 
     init(width: UInt32, height: UInt32, device: Device, surface: UnsafeMutablePointer<VkSurfaceKHR?>, buffers: UInt8, imageFormat: VkFormat) {
+        
+        var imageCaps: UnsafeMutablePointer<VkImageFormatProperties> = .allocate(capacity: 1)
+
+        vkHandleSafe(vkGetPhysicalDeviceImageFormatProperties(device.physicalDevice, imageFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, UInt32(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT.rawValue), 0, imageCaps))
         let physicalDevice = device.physicalDevice
         guard let device = device.device else { 
             log(level: .error, message: "Device is invalid")
             fatalError("Device is invalid")
         }
         var caps: UnsafeMutablePointer<VkSurfaceCapabilitiesKHR> = .allocate(capacity: 1)
-        log(level: .info, message: "Will get caps")
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface.pointee, caps)
+        vkHandleSafe(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface.pointee, caps))
+
         self.imageFormat = imageFormat
         
         let queueFamilyIndices: UnsafeMutablePointer<UInt32> = .allocate(capacity: 1)
         queueFamilyIndices.initialize(to: 0)
-
-        log(level: .info, message: "Will get queues")
 
         var info = VkSwapchainCreateInfoKHR(
             sType: VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR, 
@@ -47,10 +49,7 @@ class Swapchain {
             oldSwapchain: nil
         )
         
-        log(level: .info, message: "Will create swapchain")
-
         vkHandleSafe(vkCreateSwapchainKHR(device, &info, nil, &vkSwapchain))
-        log(level: .info, message: "Will get swapchain images")
 
         var count: UInt32 = 0
         vkHandleSafe(vkGetSwapchainImagesKHR(device, vkSwapchain, &count, nil))
@@ -61,14 +60,28 @@ class Swapchain {
 
         var index = 0
         for image in images {
-            var ivInfo = VkImageViewCreateInfo()
-            ivInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO
-            ivInfo.pNext = nil
-            ivInfo.image = image
-            ivInfo.format = imageFormat
-            ivInfo.viewType = VK_IMAGE_VIEW_TYPE_2D
+            var ivInfo = VkImageViewCreateInfo(
+                sType: VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, 
+                pNext: nil, 
+                flags: 0, 
+                image: image, 
+                viewType: VK_IMAGE_VIEW_TYPE_2D, 
+                format: imageFormat, 
+                components: VkComponentMapping(
+                    r: VkComponentSwizzle(VK_COMPONENT_SWIZZLE_IDENTITY.rawValue), 
+                    g: VkComponentSwizzle(VK_COMPONENT_SWIZZLE_IDENTITY.rawValue), 
+                    b: VkComponentSwizzle(VK_COMPONENT_SWIZZLE_IDENTITY.rawValue), 
+                    a: VkComponentSwizzle(VK_COMPONENT_SWIZZLE_IDENTITY.rawValue)
+                ), 
+                subresourceRange: VkImageSubresourceRange(
+                    aspectMask: UInt32(VK_IMAGE_ASPECT_COLOR_BIT.rawValue), 
+                    baseMipLevel: 0, 
+                    levelCount: 1, 
+                    baseArrayLayer: 0, 
+                    layerCount: 1
+                )
+            )
 
-            log(level: .info, message: "Will create swapchain image view")
             vkHandleSafe(vkCreateImageView(device, &ivInfo, nil, imageViews.baseAddress?.advanced(by: index)))
             index += 1
         }

@@ -26,7 +26,7 @@ extension DrawCall {
     }
 
     var isCommand: Bool { 
-        return (0x0000000000000100 & key == 256)
+        return (0x0000000000010000 & key == 256)
     }
 }
 
@@ -78,6 +78,7 @@ public struct MeshDrawCall: DrawCall {
         var newKey: UInt64 = 0
         newKey += 0b100000000
         newKey += (UInt64(materialId) << 16)
+        newKey += (UInt64(1) << 2)
         self.key = newKey
         self.meshId = meshId
         self.transform = transform
