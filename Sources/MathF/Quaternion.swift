@@ -16,10 +16,19 @@ public struct Quaternion {
         w = 0
     }
 
-    internal init(x: Float, y: Float, z: Float, w: Float) {
+    public init(x: Float, y: Float, z: Float, w: Float) {
         self.x = x
         self.y = y
         self.z = z
         self.w = w
+    }
+
+    public static func+(lhs: Quaternion, rhs: Quaternion) -> Quaternion {
+        Quaternion(
+            x: lhs.x + rhs.x, 
+            y: lhs.y + rhs.y, 
+            z: lhs.z + rhs.z, 
+            w: lhs.w + rhs.w
+        )
     }
 }

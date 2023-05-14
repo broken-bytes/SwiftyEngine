@@ -282,6 +282,15 @@ public struct Matrix4x4: Codable {
         
         return result
     }
+
+    public mutating func transpose() {
+        self = Matrix4x4(
+            m00: m00, m01: m10, m02: m20, m03: m30, 
+            m10: m01, m11: m11, m12: m21, m13: m31, 
+            m20: m02, m21: m12, m22: m22, m23: m32, 
+            m30: m03, m31: m13, m32: m23, m33: m33
+        )
+    }
 }
 
 // MARK: Free Matrix Functions
@@ -305,7 +314,7 @@ private func fovMatrix(fov: Float, aspect: Float, nearDist: Float, farDist: Floa
     let frustumDepth = farDist - nearDist
     let oneOverDepth = 1 / frustumDepth
 
-    result.m11 = 1 / tan(0.5 * fov)
+    result.m11 = 1 / tan(0.5 * fov * .pi / 180)
     result.m00 = (leftHanded ? 1 : -1 ) * result.m11 / aspect
     result.m22 = farDist * oneOverDepth
     result.m32 = (-farDist * nearDist) * oneOverDepth

@@ -20,9 +20,11 @@ class UniformBuffer {
         vkGetBufferMemoryRequirements(device.device, vkBuffer, memReq)
 
         do {
-            guard let memIndex = try? MemoryHelpers.findMemoryType(device: device, for: memReq.pointee.memoryTypeBits, and: VkMemoryPropertyFlags((VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT.rawValue))) else {
-                fatalError("No proper memory index found for buffer")
-            }
+            let memIndex = try MemoryHelpers.findMemoryType(
+                device: device, 
+                for: memReq.pointee.memoryTypeBits, 
+                and: VkMemoryPropertyFlags((VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT.rawValue))
+            )
 
             var allocInfo = VkMemoryAllocateInfo(
                 sType: VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, 

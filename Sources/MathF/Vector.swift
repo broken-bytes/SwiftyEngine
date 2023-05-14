@@ -61,6 +61,10 @@ public struct Vector3 {
     public static func -(lhs: Vector3, rhs: Vector3) -> Vector3 {
         return Vector3(x: lhs.x - rhs.x, y: lhs.y - rhs.y, z: lhs.z - rhs.z)
     }
+
+    public static func /(lhs: Vector3, scale: Float) -> Vector3 {
+        Vector3(x: lhs.x / scale, y: lhs.y / scale, z: lhs.z / scale)
+    }
 }
 
 public struct Vector4 {

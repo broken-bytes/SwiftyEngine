@@ -125,8 +125,8 @@ public class Renderer {
 	    vkHandleSafe(vkAcquireNextImageKHR(device.device, swapchain.vkSwapchain, 1000000000, presentSemaphore.vkSemaphore, nil, &swapchainImageIndex))
         mainCommandBuffer.reset()
 
-        viewMatrix = lookAtLH(eye: .zero, target: .zero + Vector3(x: 0, y: 0, z: 0.1))
-        projectionMatrix = perspectiveFovLH(fov: 60, aspect: 1200.0 / 800.0, nearDist: 0.01, farDist: 1000)
+        viewMatrix = lookAtRH(eye: .zero, target: Vector3(x: 0, y: 0, z: 1))
+        projectionMatrix = perspectiveFovRH(fov: 60, aspect: 1200.0 / 800.0, nearDist: 0.01, farDist: 1000)
 
         mvpDescriptor.update(buffer: mvpBuffer, offset: 0, bytes: UInt64(MemoryLayout<MVPBuffer>.size))
 
@@ -160,8 +160,9 @@ public class Renderer {
                         var modelMat = Matrix4x4()
                         modelMat.translate(vector: meshDrawCall.transform.position)
                         modelMat.rotate(quaternion: meshDrawCall.transform.rotation)
+                        modelMat.scale(vector: meshDrawCall.transform.scale)
 
-                        var mvp = MVPBuffer(model: modelMat, projection: self.projectionMatrix, view: self.viewMatrix)
+                        var mvp = MVPBuffer(projection: self.projectionMatrix, model: modelMat, view: self.viewMatrix)
                         withUnsafeMutableBytes(of: &mvp) {
                             self.mvpBuffer.writeBytes(numBytes: 192, bytes: $0.baseAddress!, offset: UInt64(currentDraws * 192))
                         }
