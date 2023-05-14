@@ -43,6 +43,23 @@ class Queue {
         vkHandleSafe(vkQueueSubmit(vkQueue, 1, &submit, fence.vkFence))
     }
 
+    func submit(commandBuffers: [CommandBuffer], fence: Fence) {
+        var submit = VkSubmitInfo()
+	    submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO
+	    submit.pNext = nil
+        submit.pWaitDstStageMask = nil
+	    submit.waitSemaphoreCount = 0
+	    submit.pWaitSemaphores = nil
+	    submit.signalSemaphoreCount = 0
+	    submit.pSignalSemaphores = nil
+	    submit.commandBufferCount = UInt32(commandBuffers.count)
+        commandBuffers
+            .map { $0.vkCommandBuffer}
+            .withUnsafeBufferPointer { submit.pCommandBuffers = $0.baseAddress }
+
+        vkHandleSafe(vkQueueSubmit(vkQueue, 1, &submit, fence.vkFence))
+    }
+
     func present(
         swapchain: Swapchain, 
         renderSemaphore: inout Semaphore, 

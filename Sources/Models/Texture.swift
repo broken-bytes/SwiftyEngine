@@ -1,19 +1,23 @@
 import Foundation
+import FreeImage
 
 public class Texture {
 
-    public let id: UInt32
+    public let width: UInt32
+    public let height: UInt32
+    var data: UnsafeMutableRawPointer
     
-    public init(width: UInt16, height: UInt16, bytes: [UInt8]) {
-        //uuid = UUID()
-        id = 0
+    public init(width: UInt32, height: UInt32, bytes: UnsafeMutableRawPointer) {
+        self.width = width
+        self.height = height
+        self.data = bytes
     }
 
-    public convenience init(width: UInt16, height: UInt16) {
-        self.init(width: width, height: height, bytes: [])
+    deinit {
+
     }
 
-    public func pixelColor(x: UInt16, y: UInt16) -> Color {
+    public func pixelColor(x: UInt32, y: UInt32) -> Color {
         // TODO: Implement readback for certain textures
         return .red
     }

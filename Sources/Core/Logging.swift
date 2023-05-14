@@ -1,4 +1,5 @@
 import Foundation
+import WinSDK
 
 public enum LogLevel: String {
     case info = "Info"
@@ -25,12 +26,18 @@ public func initLogger() {
 }
 
 public func log(level: LogLevel, message: String) {
+    if level == .error {
+        MessageBoxA(nil, message, "Error", 0)
+    }
     if level.shouldLog {
         print("\(level.rawValue): \(Date().debugDescription) \(message)")
     }
 }
 
 public func log(level: LogLevel, object: Any) {
+    if level == .error {
+        MessageBoxA(nil, "\(level.rawValue): \(Date().debugDescription) \(type(of: object))", "Error", 0)
+    }
     if level.shouldLog {
         print("\(level.rawValue): \(Date().debugDescription) \(type(of: object))")
         for prop in Mirror(reflecting: object).children {

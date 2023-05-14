@@ -22,23 +22,23 @@ public class GameKit {
         Renderer.shared.bind(to: self.mainWindow)
 
         signal(SIGABRT) { 
-            log(level: .error, message: "\($0)")
+            log(level: .error, message: "SIGABRT \($0)")
         }
 
         signal(SIGSEGV) { 
-            log(level: .error, message: "\($0)")
+            log(level: .error, message: "SIGSEV \($0)")
         }
 
         signal(SIGILL) { 
-            log(level: .error, message: "\($0)")
+            log(level: .error, message: "SIGILL \($0)")
         }
 
         signal(SIGTERM) { 
-            log(level: .error, message: "\($0)")
+            log(level: .error, message: "SIGTERM \($0)")
         }
 
         signal(SIGBREAK) { 
-            log(level: .error, message: "\($0)")
+            log(level: .error, message: "SIGBREAK \($0)")
         }
 
         let vertexShader = Renderer.shared.compileShader(at: "H:/Projects/SwiftTest/Compiled/Shaders/default.vs.spv")

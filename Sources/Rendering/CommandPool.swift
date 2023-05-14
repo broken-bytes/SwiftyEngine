@@ -15,6 +15,10 @@ class CommandPool {
         vkHandleSafe(vkCreateCommandPool(device.device, &info, nil, &vkCommandPool))
     }
 
+    func reset() {
+        vkResetCommandPool(device.device, vkCommandPool, 0)
+    }
+
     deinit {
         vkDestroyCommandPool(device.device, vkCommandPool, nil)
     }

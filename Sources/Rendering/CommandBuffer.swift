@@ -59,6 +59,19 @@ class CommandBuffer {
         vkHandleSafe(vkEndCommandBuffer(vkCommandBuffer))
     }
 
+    func execute(_ block: @escaping (CommandBuffer) -> Void) {
+        var info = VkCommandBufferBeginInfo()
+        info.pNext = nil
+        info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+        info.pInheritanceInfo = nil
+        info.flags = UInt32(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT.rawValue)
+        vkHandleSafe(vkBeginCommandBuffer(vkCommandBuffer, &info))
+
+        block(self)
+
+        vkEndCommandBuffer(vkCommandBuffer)
+    }
+
     func reset() {
         vkHandleSafe(vkResetCommandBuffer(vkCommandBuffer, 0));
     }
@@ -102,5 +115,9 @@ class CommandBuffer {
     func set(scissor: Rect) {
         var vkRect = VkRect2D(offset: .init(x: scissor.x, y: scissor.y), extent: .init(width: scissor.width, height: scissor.height))
         vkCmdSetScissor(vkCommandBuffer, 0, 1, &vkRect)
+    }
+
+    func upload() {
+
     }
 }

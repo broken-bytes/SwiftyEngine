@@ -1,5 +1,6 @@
 import Core
 import Foundation
+import FreeImage
 import MathF
 import Models
 import SwiftyGLTF
@@ -129,5 +130,23 @@ public class AssetLoader {
         }
 
         return meshData
+    }
+
+    public func loadTexture(at path: String) -> Texture {
+        let type = FreeImage_GetFileType(path.cString(using: .utf8), 0)
+		var result = FreeImage_Load(type, path, type == FIF_PNG.rawValue ? PNG_IGNOREGAMMA : 0)
+        let width = FreeImage_GetWidth(result)
+		let height = FreeImage_GetHeight(result)
+
+        let bbp = FreeImage_GetBPP(result)
+        result = FreeImage_ConvertTo32Bits(result)
+
+        var bytes: UnsafeMutableRawPointer = .allocate(byteCount: Int((width) * (height) * 4), alignment: 1)
+        memcpy(bytes, FreeImage_GetBits(result), Int((width) * (height) * 4))
+        var texture = Texture(width: width, height: height, bytes: bytes)
+
+        FreeImage_Unload(result)
+
+        return texture
     }
 }

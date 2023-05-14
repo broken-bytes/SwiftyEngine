@@ -11,6 +11,10 @@ for model in meshes {
     meshIds.append(Renderer.shared.uploadMesh(mesh: model))
 }
 
+var texture = AssetLoader.shared.loadTexture(at: "H:/Projects/SwiftTest/Resources/Textures/checkers.png")
+
+Renderer.shared.uploadTexture(texture: texture)
+
 while true {
     for mesh in meshIds {
         Renderer.shared.draw(

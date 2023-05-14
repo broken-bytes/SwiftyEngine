@@ -36,11 +36,16 @@ public class Renderer {
     private var shaders: [Shader] = []
     private var materials: [Material] = []
     private var meshes: [Mesh] = []
+    private var images: [Image] = []
     private var projectionDescriptorPool: DescriptorPool!
     private var mvpDescriptor: DescriptorSet!
     private var mvpBuffer: UniformBuffer!
     private var viewMatrix: Matrix4x4!
     private var projectionMatrix: Matrix4x4!
+    private var uploadFence: Fence!
+    private var uploadPool: CommandPool!
+    private var uploadBuffer: CommandBuffer!
+    private var uploadQueue: Queue!
 
     internal init() {
         var renderDoc: UnsafeMutablePointer<UnsafeMutableRawPointer?>? = .allocate(capacity: 1)
@@ -62,6 +67,7 @@ public class Renderer {
         initQueues()
         initSwapchain(window: window)
         renderFence = Fence(device: device)
+        uploadFence = Fence(device: device, startSignaled: false)
         presentSemaphore = Semaphore(device: device)
         renderSemaphore = Semaphore(device: device)
         initRenderPasses()
@@ -111,8 +117,22 @@ public class Renderer {
     }
 
     public func render() {
+        
+        uploadBuffer.execute {
+            $0.upload()
+        }
+
+        mainQueue.submit(commandBuffers: [uploadBuffer], fence: uploadFence)
+        
+        uploadFence.wait()
+        uploadFence.reset()
+        uploadBuffer.reset()
+        uploadPool.reset()
+
         renderFence.wait()
         renderFence.reset()
+        mainCommandBuffer.reset()
+        commandPool.reset()
 
         let meshDraws = drawCalls.filter { !$0.isCommand }.count
         // Get the number of objects to be drawn this frame and adjust MVP buffer
@@ -123,7 +143,6 @@ public class Renderer {
 
         var swapchainImageIndex: UInt32 = 0
 	    vkHandleSafe(vkAcquireNextImageKHR(device.device, swapchain.vkSwapchain, 1000000000, presentSemaphore.vkSemaphore, nil, &swapchainImageIndex))
-        mainCommandBuffer.reset()
 
         viewMatrix = lookAtRH(eye: .zero, target: Vector3(x: 0, y: 0, z: 1))
         projectionMatrix = perspectiveFovRH(fov: 60, aspect: 1200.0 / 800.0, nearDist: 0.01, farDist: 1000)
@@ -228,10 +247,6 @@ public class Renderer {
         return shader.id
     }
 
-    public func uploadImage() -> Void {
-        
-    }
-
     public func uploadMesh(mesh: MeshData) -> UInt32 {
         let vertBuffer = device.createVertexBuffer(with: mesh.vertices)
         let indexBuffer = device.createIndexBuffer(with: mesh.indices)
@@ -240,6 +255,13 @@ public class Renderer {
         meshes.append(mesh)
 
         return mesh.id
+    }
+
+    public func uploadTexture(texture: Texture) -> UInt32 {
+        var img = Image(device: device, width: texture.width, height: texture.height)
+        images.append(img)
+
+        return img.id
     }
 }
 
@@ -330,6 +352,9 @@ extension Renderer {
         mainQueue = Queue(device: device, familyIndex: 0)
         commandPool = CommandPool(device: device, familyIndex: 0)
         mainCommandBuffer = CommandBuffer(device: device, commandPool: commandPool)
+        uploadPool = CommandPool(device: device, familyIndex: 0)
+        uploadBuffer = CommandBuffer(device: device, commandPool: uploadPool)
+        uploadQueue = Queue(device: device, familyIndex: 0)
     }
 
     private func initSwapchain(window: Window) {
