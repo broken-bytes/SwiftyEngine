@@ -2,7 +2,7 @@ import Vulkan
 
 protocol DescriptorSetLayout {
 
-    var vkLayout: VkDescriptorSetLayout! { get }
+    var vkLayout: VkDescriptorSetLayout! { get set }
 }
 
 class MVPDescriptorSetLayout: DescriptorSetLayout {
@@ -13,7 +13,7 @@ class MVPDescriptorSetLayout: DescriptorSetLayout {
         // Create barebone descriptors that every shader need
         let projectionBufferBinding = VkDescriptorSetLayoutBinding(
             binding: 0, 
-            descriptorType: VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
+            descriptorType: VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 
             descriptorCount: 1, 
             stageFlags: UInt32(VK_SHADER_STAGE_VERTEX_BIT.rawValue), 
             pImmutableSamplers: nil

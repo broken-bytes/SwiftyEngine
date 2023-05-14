@@ -18,17 +18,7 @@ debugPrint(projection)
 
 while true {
     for mesh in meshIds {
-        Renderer.shared.execute(
-            drawCall: MeshDrawCall(
-                viewportId: 0, 
-                layer: 0, 
-                translucency: 0, 
-                materialId: 0, 
-                depth: 0, 
-                meshId: mesh, 
-                transform: .init(position: .zero, rotation: .zero, scale: .zero)
-            )
-        )
+        Renderer.shared.draw(entityId: 0, meshId: mesh, materialId: 0, transform: .init(position: .zero, rotation: .identity, scale: .one))
     }
     GameKit.shared.update()    
 }

@@ -1,5 +1,6 @@
 import Core
 import Foundation
+import MathF
 import Models
 import SDL
 import Vulkan
@@ -36,7 +37,10 @@ public class Renderer {
     private var materials: [Material] = []
     private var meshes: [Mesh] = []
     private var projectionDescriptorPool: DescriptorPool!
+    private var mvpDescriptor: DescriptorSet!
     private var mvpBuffer: UniformBuffer!
+    private var viewMatrix: Matrix4x4!
+    private var projectionMatrix: Matrix4x4!
 
     internal init() {
         var renderDoc: UnsafeMutablePointer<UnsafeMutableRawPointer?>? = .allocate(capacity: 1)
@@ -110,9 +114,21 @@ public class Renderer {
         renderFence.wait()
         renderFence.reset()
 
+        let meshDraws = drawCalls.filter { !$0.isCommand }.count
+        // Get the number of objects to be drawn this frame and adjust MVP buffer
+        mvpBuffer = device.createUniformBuffer(
+            sizeInBytes: UInt64(meshDraws * MemoryLayout<MVPBuffer>.size), 
+            flags: UInt32(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT.rawValue)
+        )
+
         var swapchainImageIndex: UInt32 = 0
 	    vkHandleSafe(vkAcquireNextImageKHR(device.device, swapchain.vkSwapchain, 1000000000, presentSemaphore.vkSemaphore, nil, &swapchainImageIndex))
         mainCommandBuffer.reset()
+
+        viewMatrix = lookAtLH(eye: .zero, target: .zero + Vector3(x: 0, y: 0, z: 0.1))
+        projectionMatrix = perspectiveFovLH(fov: 60, aspect: 1200.0 / 800.0, nearDist: 0.01, farDist: 1000)
+
+        mvpDescriptor.update(buffer: mvpBuffer, offset: 0, bytes: UInt64(MemoryLayout<MVPBuffer>.size))
 
         mainCommandBuffer.execute(
             framebuffer: frameBuffers[Int(swapchainImageIndex)], 
@@ -121,6 +137,9 @@ public class Renderer {
         ) { 
             $0.set(clearColor: .init(color: .init(float32: (0.1, 0.1, 0.2, 1))))
             $0.set(viewport: Viewport(x: 0, y: 0, width: UInt32(self.width), height: UInt32(self.height)))
+            $0.set(scissor: Rect(x: 0, y: 0, width: UInt32(self.width), height: UInt32(self.height)))
+
+            var currentDraws = 0
 
             for drawcall in self.drawCalls {
                 // First check if it a fullscreen effect
@@ -137,9 +156,20 @@ public class Renderer {
                             continue
                         }
 
-                        $0.set(scissor: Rect(x: 0, y: 0, width: UInt32(self.width), height: UInt32(self.height)))
+                        // TODO: Fill the MVP buffer with this entity's MVP data
+                        var modelMat = Matrix4x4()
+                        modelMat.translate(vector: meshDrawCall.transform.position)
+                        modelMat.rotate(quaternion: meshDrawCall.transform.rotation)
+
+                        var mvp = MVPBuffer(model: modelMat, projection: self.projectionMatrix, view: self.viewMatrix)
+                        withUnsafeMutableBytes(of: &mvp) {
+                            self.mvpBuffer.writeBytes(numBytes: 192, bytes: $0.baseAddress!, offset: UInt64(currentDraws * 192))
+                        }
+
                         $0.bind(to: material.pipeline)
                         $0.bind(to: mesh.vertexBuffer)
+                        $0.bind(descriptor: self.mvpDescriptor, at: 0, layout: material.pipeline.layout.vkPipelineLayout, offset: UInt32(MemoryLayout<MVPBuffer>.size * currentDraws))
+                        
 
                         if mesh.indexBuffer.count > 0 {
                             $0.bind(to: mesh.indexBuffer)
@@ -147,6 +177,8 @@ public class Renderer {
                         } else {
                             $0.draw(numVertices: mesh.vertexBuffer.count, numInstaces: 1, offset: 0, firstInstance: 0)  
                         }
+
+                        currentDraws += 1
                     }
                 }
             }
@@ -171,6 +203,21 @@ public class Renderer {
     public func execute(drawCall: DrawCall) {
         drawCalls.append(drawCall)
         drawCalls.sort(by: { $0.key < $1.key })
+    }
+
+    public func draw(entityId: UInt32, meshId: UInt32, materialId: UInt32, transform: Transform) {
+        drawCalls.append(
+            MeshDrawCall(
+                viewportId: 0, 
+                layer: 0, 
+                translucency: 0, 
+                materialId: 0, 
+                depth: 0, 
+                entityId: entityId,
+                meshId: meshId, 
+                transform: transform
+            )
+        )
     }
 
     public func compileShader(at path: String) -> UInt32 {
@@ -318,8 +365,8 @@ extension Renderer {
     }
 
     private func initDescriptors() {
-        // Create 8192 MVP descriptors
         projectionDescriptorPool = device.createDescriptorPool()
+        self.mvpDescriptor = projectionDescriptorPool.allocate(count: 1, layout: &layouts[.mvpDescriptor]!.vkLayout)
     }
 
     private func findBestGPU() -> VkPhysicalDevice {

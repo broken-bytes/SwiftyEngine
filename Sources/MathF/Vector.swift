@@ -9,6 +9,10 @@ public struct Vector2 {
         Vector2(x: 0, y: 0)
     }
 
+    public static var one: Vector2 {
+        Vector2(x: 1, y: 1)
+    }
+
     public init(
         x: Float,
         y: Float
@@ -36,6 +40,10 @@ public struct Vector3 {
         Vector3(x: 0, y: 0, z: 0)
     }
 
+    public static var one: Vector3 {
+        Vector3(x: 1, y: 1, z: 1)
+    }
+
     public init(
         x: Float,
         y: Float,
@@ -57,25 +65,29 @@ public struct Vector3 {
 
 public struct Vector4 {
     
-    public var w: Float
     public var x: Float
     public var y: Float
     public var z: Float
+    public var w: Float
 
     public static var zero: Vector4 {
-        Vector4(w: 0, x: 0, y: 0, z: 0)
+        Vector4(x: 0, y: 0, z: 0, w: 0)
+    }
+
+    public static var one: Vector4 {
+        Vector4(x: 1, y: 1, z: 1, w: 1)
     }
 
     public init(
-        w: Float,
         x: Float,
         y: Float,
-        z: Float
+        z: Float,
+        w: Float
     ) {
-        self.w = w
         self.x = x
         self.y = y
         self.z = z
+        self.w = w
     }
 }
 

@@ -1,0 +1,26 @@
+Launching Vulkan Application:
+- Layers overridden by "Validation" configuration.
+- Executable Path: H:\Projects\SwiftTest\.build\x86_64-unknown-windows-msvc\debug\TestApp.exe
+- Working Directory: H:\Projects\SwiftTest\.build\x86_64-unknown-windows-msvc\debug
+- Log file: H:\Projects\SwiftTest\log.txt
+UNASSIGNED-khronos-validation-createinstance-status-message(INFO / SPEC): msgNum: -671457468 - Validation Information: [ UNASSIGNED-khronos-validation-createinstance-status-message ] Object 0: handle = 0x2a777385fe0, type = VK_OBJECT_TYPE_INSTANCE; | MessageID = 0xd7fa5f44 | Khronos Validation Layer Active:
+    Settings File: Found at C:\Users\Marcel\AppData\Local\LunarG\vkconfig\override\vk_layer_settings.txt specified by VkConfig application override.
+    Current Enables: None.
+    Current Disables: None.
+
+    Objects: 1
+        [0] 0x2a777385fe0, type: 1, name: NULL
+"Creating pipeline layout"
+UNASSIGNED-CoreValidation-Shader-OutputNotConsumed(WARN / PERF): msgNum: 101294395 - Validation Performance Warning: [ UNASSIGNED-CoreValidation-Shader-OutputNotConsumed ] Object 0: handle = 0xd175b40000000013, type = VK_OBJECT_TYPE_SHADER_MODULE; | MessageID = 0x609a13b | Vertex attribute at location 1 not consumed by vertex shader
+    Objects: 1
+        [0] 0xd175b40000000013, type: 15, name: NULL
+2
+264
+3912
+3912
+MathF.Matrix4x4(m00: -1.0, m01: 0.0, m02: 0.0, m03: 0.0, m10: 0.0, m11: 1.0, m12: 0.0, m13: 0.0, m20: 0.0, m21: 0.0, m22: -1.0, m23: 0.0, m30: -0.0, m31: -0.0, m32: -0.0, m33: 1.0)
+MathF.Matrix4x4(m00: -0.09757497, m01: 0.0, m02: 0.0, m03: 0.0, m10: 0.0, m11: -0.15611996, m12: 0.0, m13: 0.0, m20: 0.0, m21: 0.0, m22: 1.00001, m23: 1.0, m30: 0.0, m31: 0.0, m32: -0.0100001, m33: 0.0)
+VUID-vkMapMemory-memory-00682(ERROR / SPEC): msgNum: -330527817 - Validation Error: [ VUID-vkMapMemory-memory-00682 ] Object 0: handle = 0x3fbcd60000000028, type = VK_OBJECT_TYPE_DEVICE_MEMORY; | MessageID = 0xec4c8bb7 | Mapping Memory without VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT set: VkDeviceMemory 0x3fbcd60000000028[]. The Vulkan spec states: memory must have been created with a memory type that reports VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkMapMemory-memory-00682)
+    Objects: 1
+        [0] 0x3fbcd60000000028, type: 8, name: NULL
+Process terminated

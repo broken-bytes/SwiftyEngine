@@ -2,12 +2,12 @@ import MathF
 
 public struct Transform {
     public var position: Vector3
-    public var rotation: Vector4
+    public var rotation: Quaternion
     public var scale: Vector3
 
     public init(
         position: Vector3,
-        rotation: Vector4,
+        rotation: Quaternion,
         scale: Vector3
     ) {
         self.position = position

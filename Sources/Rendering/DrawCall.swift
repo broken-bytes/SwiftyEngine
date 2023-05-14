@@ -60,6 +60,7 @@ public struct MeshDrawCall: DrawCall {
     // 16-47: Material ID
     // 48 - 63 depth
     public let key: UInt64
+    public let entityId: UInt32
     public let meshId: UInt32
     public let transform: Transform
 
@@ -73,6 +74,7 @@ public struct MeshDrawCall: DrawCall {
         translucency: UInt8, 
         materialId: UInt32, 
         depth: UInt16,
+        entityId: UInt32,
         meshId: UInt32,
         transform: Transform
     ) {
@@ -81,6 +83,7 @@ public struct MeshDrawCall: DrawCall {
         newKey += (UInt64(materialId) << 16)
         newKey += (UInt64(1) << 2)
         self.key = newKey
+        self.entityId = entityId
         self.meshId = meshId
         self.transform = transform
     }

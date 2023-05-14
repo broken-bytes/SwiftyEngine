@@ -7,7 +7,7 @@ class DescriptorPool {
 
     init(device: Device) {
         self.device = device
-        let poolSizes: UnsafeMutablePointer<VkDescriptorPoolSize> = .allocate(capacity: 2)
+        let poolSizes: UnsafeMutablePointer<VkDescriptorPoolSize> = .allocate(capacity: 1)
         poolSizes[0] = VkDescriptorPoolSize(type: VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCount: 10)
         poolSizes[1] = VkDescriptorPoolSize(type: VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, descriptorCount: 10)
 
@@ -24,7 +24,7 @@ class DescriptorPool {
         poolSizes.deallocate()
     } 
 
-    func allocate(count: UInt32, target: UnsafeMutablePointer<VkDescriptorSet?>, layout: UnsafeMutablePointer<VkDescriptorSetLayout?>) {
+    func allocate(count: UInt32, layout: UnsafeMutablePointer<VkDescriptorSetLayout?>) -> DescriptorSet {
 
         var info = VkDescriptorSetAllocateInfo(
             sType: VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO, 
@@ -34,12 +34,6 @@ class DescriptorPool {
             pSetLayouts: layout
         )
 
-        vkHandleSafe(
-            vkAllocateDescriptorSets(
-                device.device, 
-                &info, 
-                target
-            )
-        )
+        return DescriptorSet(device: device, info: &info)
     }
 }

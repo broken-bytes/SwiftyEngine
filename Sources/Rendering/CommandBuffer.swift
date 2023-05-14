@@ -77,6 +77,11 @@ class CommandBuffer {
         vkCmdBindIndexBuffer(vkCommandBuffer, buffer.vkBuffer, offset, VK_INDEX_TYPE_UINT16)
     }
 
+    func bind(descriptor: DescriptorSet, at slot: UInt32, layout: VkPipelineLayout, offset: UInt32) {
+        var offsets: UInt32 = offset
+        vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, slot, 1, &descriptor.vkDescriptorSet, 1, &offsets)
+    }
+
     func draw(numVertices: UInt32, numInstaces: UInt32, offset: UInt32, firstInstance: UInt32) {
         vkCmdDraw(vkCommandBuffer, numVertices, numInstaces, offset, firstInstance)
     }

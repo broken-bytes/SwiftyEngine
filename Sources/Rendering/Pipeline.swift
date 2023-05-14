@@ -6,6 +6,7 @@ class Pipeline: Identifiable {
     typealias ID = UInt32
 
     private static var pipelineIds: [ID] = []
+    let layout: PipelineLayout
 
     let id: ID
     var vkPipeline: VkPipeline?
@@ -21,7 +22,7 @@ class Pipeline: Identifiable {
         self.pixelShader = pixelShader
 
         let stage = PipelineStage(vertexShader: vertexShader, pixelShader: pixelShader)
-        let layout = PipelineLayout(device: device, layouts: layouts)
+        self.layout = PipelineLayout(device: device, layouts: layouts)
 
         let dynamics = [
             VK_DYNAMIC_STATE_VIEWPORT,
