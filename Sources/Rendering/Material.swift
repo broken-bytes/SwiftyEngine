@@ -1,5 +1,6 @@
 import Core
 import Foundation
+import Models
 
 public class Material: Hashable {
 
@@ -20,7 +21,7 @@ public class Material: Hashable {
     }
 
     public func setTexture(key: String, value: Texture) {
-        textures[key] = value.uuid
+        //textures[key] = value.
     }
 
     public func setColor(key: String, value: Color) {

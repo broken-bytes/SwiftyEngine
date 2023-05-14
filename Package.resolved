@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "swiftygltf",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/broken-bytes/SwiftyGLTF.git",
+      "state" : {
+        "revision" : "a54092a8442d6f2f4a41b0a94ab901b3022a3ecf",
+        "version" : "1.0.1"
+      }
+    }
+  ],
+  "version" : 2
+}

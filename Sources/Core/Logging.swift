@@ -30,3 +30,12 @@ public func log(level: LogLevel, message: String) {
     }
 }
 
+public func log(level: LogLevel, object: Any) {
+    if level.shouldLog {
+        print("\(level.rawValue): \(Date().debugDescription) \(type(of: object))")
+        for prop in Mirror(reflecting: object).children {
+            print("- Name: \(prop.label!): \(prop.value)")
+        }
+    }
+}
+

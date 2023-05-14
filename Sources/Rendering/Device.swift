@@ -1,4 +1,5 @@
-import DXC
+import MathF
+import Models
 import SDL
 import Vulkan
 
@@ -67,7 +68,15 @@ class Device {
         VertexBuffer(device: self, with: vertices)
     }
 
-    func createIndexBuffer(with indices: [UInt32]) -> IndexBuffer {
+    func createIndexBuffer(with indices: [UInt16]) -> IndexBuffer {
         IndexBuffer(device: self, with: indices)
+    }
+
+    func createUniformBuffer(sizeInBytes: UInt64, flags: VkBufferUsageFlags) -> UniformBuffer {
+        UniformBuffer(device: self, sizeInBytes: sizeInBytes, flags: flags)
+    }
+
+    func createDescriptorPool() -> DescriptorPool {
+        DescriptorPool(device: self)
     }
 }

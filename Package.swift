@@ -21,6 +21,7 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/broken-bytes/SwiftyGLTF.git", from: "1.0.1")
     ],
     targets: [
         .executableTarget(
@@ -34,7 +35,7 @@ let package = Package(
         ),
         .target(
             name: "Audio",
-            dependencies: ["Core", "OpenAL", "SDL"],
+            dependencies: ["Core", "MathF", "Models", "OpenAL", "SDL"],
             path: "Sources/Audio",
             linkerSettings: [
                 .unsafeFlags(["-L", "E:/libs/OpenAL/libs/Win64"]),
@@ -45,7 +46,7 @@ let package = Package(
         ),
         .target(
             name: "Core",
-            dependencies: ["Flecs", "SDL"],
+            dependencies: ["Flecs", "MathF", "SDL"],
             path: "Sources/Core",
             linkerSettings: [
                 .unsafeFlags(["-L", "E:/libs/SDL/lib/x64"]),
@@ -60,12 +61,26 @@ let package = Package(
         ),
         .target(
             name: "GameKit",
-            dependencies: ["Audio", "Core", "ECS", "Rendering"],
+            dependencies: ["Audio", "Core", "ECS", "IO", "Rendering", "MathF", "Models"],
             path: "Sources/GameKit"
         ),
         .target(
+            name: "IO",
+            dependencies: ["Core", "Models", .product(name: "SwiftyGLTF", package: "SwiftyGLTF")],
+            path: "Sources/IO"
+        ),
+        .target(
+            name: "MathF",
+            dependencies: []
+        ),
+        .target(
+            name: "Models",
+            dependencies: ["MathF"],
+            path: "Sources/Models"
+        ),
+        .target(
             name: "Rendering",
-            dependencies: ["Core", "FreeImage", "SDL", "Vulkan"],
+            dependencies: ["Core", "FreeImage", "MathF", "Models", "SDL", "Vulkan"],
             path: "Sources/Rendering",
             swiftSettings: [
                 .unsafeFlags(["-emit-module"]),

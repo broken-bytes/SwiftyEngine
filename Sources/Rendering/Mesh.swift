@@ -11,6 +11,7 @@ public struct Mesh: Identifiable {
 
     internal init(vertexBuffer: VertexBuffer, indexBuffer: IndexBuffer) {
         self.id = Mesh.meshIds.nextFreeValue
+        Mesh.meshIds.append(self.id)
         self.vertexBuffer = vertexBuffer
         self.indexBuffer = indexBuffer
     }

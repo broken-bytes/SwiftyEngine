@@ -1,3 +1,4 @@
+import Models
 import Vulkan
 
 class CommandBuffer {
@@ -70,9 +71,18 @@ class CommandBuffer {
         var offsets: [UInt64] = [0]
         vkCmdBindVertexBuffers(vkCommandBuffer, 0, 1, &buffer.vkBuffer, &offsets)
     }
+    
+    func bind(to buffer: IndexBuffer) {
+        var offset: UInt64 = 0
+        vkCmdBindIndexBuffer(vkCommandBuffer, buffer.vkBuffer, offset, VK_INDEX_TYPE_UINT16)
+    }
 
     func draw(numVertices: UInt32, numInstaces: UInt32, offset: UInt32, firstInstance: UInt32) {
         vkCmdDraw(vkCommandBuffer, numVertices, numInstaces, offset, firstInstance)
+    }
+
+    func drawIndexed(numIndices: UInt32, numInstances: UInt32, offset: Int32, firstIndex: UInt32, firstInstance: UInt32) {
+        vkCmdDrawIndexed(vkCommandBuffer, numIndices, numInstances, firstIndex, offset, firstInstance)
     }
 
     func set(clearColor color: VkClearValue) {

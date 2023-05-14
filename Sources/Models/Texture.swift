@@ -1,12 +1,12 @@
-import Core
 import Foundation
 
 public class Texture {
 
-    internal let uuid: UUID
+    public let id: UInt32
     
     public init(width: UInt16, height: UInt16, bytes: [UInt8]) {
-        uuid = UUID()
+        //uuid = UUID()
+        id = 0
     }
 
     public convenience init(width: UInt16, height: UInt16) {

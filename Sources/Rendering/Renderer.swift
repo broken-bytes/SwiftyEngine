@@ -1,11 +1,16 @@
 import Core
 import Foundation
+import Models
 import SDL
-import ShaderCompiler
 import Vulkan
 import WinSDK
 
 public class Renderer {
+
+    enum DescriptorLayout {
+
+        case mvpDescriptor
+    }
 
     public static let shared = Renderer()
     private var shaderCompiler: ShaderCompiler!
@@ -22,15 +27,16 @@ public class Renderer {
     private var commandPool: CommandPool!
     private var mainCommandBuffer: CommandBuffer!
     private let frameBufferCount: UInt8 = 2
-
     private var mainRenderPass: RenderPass!
     private var frameBuffers: [FrameBuffer] = []
-
     private var drawCalls: [DrawCall] = []
+    private var layouts: [DescriptorLayout: DescriptorSetLayout] = [:]
     private var pipelines: [Pipeline] = []
     private var shaders: [Shader] = []
     private var materials: [Material] = []
     private var meshes: [Mesh] = []
+    private var projectionDescriptorPool: DescriptorPool!
+    private var mvpBuffer: UniformBuffer!
 
     internal init() {
         var renderDoc: UnsafeMutablePointer<UnsafeMutableRawPointer?>? = .allocate(capacity: 1)
@@ -56,6 +62,8 @@ public class Renderer {
         renderSemaphore = Semaphore(device: device)
         initRenderPasses()
         initBuffers()
+        initDesciptorLayouts()
+        initDescriptors()
     }
 
     public func update() {
@@ -76,7 +84,13 @@ public class Renderer {
         }
 
         if pipeline == nil {
-            let newPipeline = Pipeline(device: device, vertexShader: vs, pixelShader: ps, renderPass: mainRenderPass)
+            let newPipeline = Pipeline(
+                device: device, 
+                vertexShader: vs, 
+                pixelShader: ps, 
+                renderPass: mainRenderPass,
+                layouts: layouts.map { $0.value }
+            )
             pipelines.append(newPipeline)
             pipeline = newPipeline
         }
@@ -126,10 +140,15 @@ public class Renderer {
                         $0.set(scissor: Rect(x: 0, y: 0, width: UInt32(self.width), height: UInt32(self.height)))
                         $0.bind(to: material.pipeline)
                         $0.bind(to: mesh.vertexBuffer)
-                        $0.draw(numVertices: mesh.vertexBuffer.count, numInstaces: 1, offset: 0, firstInstance: 0)  
+
+                        if mesh.indexBuffer.count > 0 {
+                            $0.bind(to: mesh.indexBuffer)
+                            $0.drawIndexed(numIndices: UInt32(mesh.indexBuffer.count), numInstances: 1, offset: 0, firstIndex: 0, firstInstance: 0)
+                        } else {
+                            $0.draw(numVertices: mesh.vertexBuffer.count, numInstaces: 1, offset: 0, firstInstance: 0)  
+                        }
                     }
                 }
-
             }
         }
 
@@ -180,7 +199,7 @@ public class Renderer {
 extension Renderer {
 
     private func createPipeline(vertexShader: Shader, pixelShader: Shader) -> UInt32 {
-        let pipeline = Pipeline(device: device, vertexShader: vertexShader, pixelShader: pixelShader, renderPass: mainRenderPass)
+        let pipeline = Pipeline(device: device, vertexShader: vertexShader, pixelShader: pixelShader, renderPass: mainRenderPass, layouts: layouts.map { $0.value })
         pipelines.append(pipeline)
 
         return pipeline.id
@@ -290,6 +309,17 @@ extension Renderer {
             )
             frameBuffers.append(buffer)
         }
+
+        mvpBuffer = device.createUniformBuffer(sizeInBytes: UInt64(1 * MemoryLayout<MVPBuffer>.size), flags: UInt32(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT.rawValue))
+    }
+
+    private func initDesciptorLayouts() {
+        layouts[.mvpDescriptor] = MVPDescriptorSetLayout(device: device)
+    }
+
+    private func initDescriptors() {
+        // Create 8192 MVP descriptors
+        projectionDescriptorPool = device.createDescriptorPool()
     }
 
     private func findBestGPU() -> VkPhysicalDevice {

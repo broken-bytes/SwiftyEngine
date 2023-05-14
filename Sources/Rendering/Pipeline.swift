@@ -1,4 +1,5 @@
 import Core
+import Models
 import Vulkan
 
 class Pipeline: Identifiable {
@@ -12,7 +13,7 @@ class Pipeline: Identifiable {
     var vertexShader: Shader
     var pixelShader: Shader
 
-    init(device: Device, vertexShader: Shader, pixelShader: Shader, renderPass: RenderPass) {
+    init(device: Device, vertexShader: Shader, pixelShader: Shader, renderPass: RenderPass, layouts: [DescriptorSetLayout]) {
         self.id = Pipeline.pipelineIds.nextFreeValue
         Pipeline.pipelineIds.append(id)
         self.device = device
@@ -20,7 +21,7 @@ class Pipeline: Identifiable {
         self.pixelShader = pixelShader
 
         let stage = PipelineStage(vertexShader: vertexShader, pixelShader: pixelShader)
-        let layout = PipelineLayout(device: device)
+        let layout = PipelineLayout(device: device, layouts: layouts)
 
         let dynamics = [
             VK_DYNAMIC_STATE_VIEWPORT,

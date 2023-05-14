@@ -1,7 +1,10 @@
 import Audio
 import Core
-import Foundation
 import ECS
+import Foundation
+import IO
+import MathF
+import Models
 import Rendering
 
 fileprivate var meshId: UInt32!
@@ -46,7 +49,7 @@ public class GameKit {
             Vertex(
                 position: Vector3(x: 0, y: -0.5, z: 0),
                 uv: Vector2(x: 0, y: 0),
-                color: Color(r: 0, g: 1, b: 1, a: 1)
+                color: Color(r: 1, g: 1, b: 1, a: 1)
             ),
             Vertex(
                 position: Vector3(x: 0.5, y: 0.5, z: 0),
@@ -56,7 +59,7 @@ public class GameKit {
             Vertex(
                 position: Vector3(x: -0.5, y: 0.5, z: 0),
                 uv: Vector2(x: 0, y: 0),
-                color: Color(r: 1, g: 1, b: 0, a: 1)
+                color: Color(r: 0, g: 0, b: 0, a: 1)
             ),
         ]
 
@@ -83,16 +86,6 @@ public class GameKit {
 
     public func update() {
         Window.processWindowEvents()   
-        Renderer.shared.execute(
-            drawCall: MeshDrawCall(
-                viewportId: 0, 
-                layer: 0, 
-                translucency: 0, 
-                materialId: materialId, 
-                depth: 0, 
-                meshId: meshId, 
-                transform: Transform(position: .zero, rotation: .zero, scale: .zero)
-        ))
         Renderer.shared.update()
         Renderer.shared.render()
         AudioEngine.shared.update()

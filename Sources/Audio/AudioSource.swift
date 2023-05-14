@@ -1,4 +1,6 @@
 import Core
+import MathF
+import Models
 import OpenAL
 
 public class AudioSource {
