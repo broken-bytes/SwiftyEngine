@@ -117,7 +117,65 @@ class CommandBuffer {
         vkCmdSetScissor(vkCommandBuffer, 0, 1, &vkRect)
     }
 
-    func upload() {
+    func transition(image: Image, format: VkFormat, from: VkImageLayout, to: VkImageLayout) {
+        var barrier = VkImageMemoryBarrier(
+            sType: VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER, 
+            pNext: nil, 
+            srcAccessMask: 0, 
+            dstAccessMask: 0, 
+            oldLayout: from, 
+            newLayout: to, 
+            srcQueueFamilyIndex: VK_QUEUE_FAMILY_IGNORED, 
+            dstQueueFamilyIndex: VK_QUEUE_FAMILY_IGNORED, 
+            image: image.vkImage, 
+            subresourceRange: VkImageSubresourceRange()
+        )
+        barrier.subresourceRange.aspectMask = UInt32(VK_IMAGE_ASPECT_COLOR_BIT.rawValue)
+        barrier.subresourceRange.baseMipLevel = 0
+        barrier.subresourceRange.levelCount = 1
+        barrier.subresourceRange.baseArrayLayer = 0
+        barrier.subresourceRange.layerCount = 1
 
+        var sourceStage = VkPipelineStageFlags()
+        var destinationStage = VkPipelineStageFlags()
+
+        if from == VK_IMAGE_LAYOUT_UNDEFINED && to == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL {
+            barrier.srcAccessMask = 0
+            barrier.dstAccessMask = UInt32(VK_ACCESS_TRANSFER_WRITE_BIT.rawValue)
+            sourceStage = UInt32(VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT.rawValue)
+            destinationStage = UInt32(VK_PIPELINE_STAGE_TRANSFER_BIT.rawValue)
+        } else if from == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && to == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL {
+            barrier.srcAccessMask = UInt32(VK_ACCESS_TRANSFER_WRITE_BIT.rawValue)
+            barrier.dstAccessMask = UInt32(VK_ACCESS_SHADER_READ_BIT.rawValue)
+            sourceStage = UInt32(VK_PIPELINE_STAGE_TRANSFER_BIT.rawValue)
+            destinationStage = UInt32(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT.rawValue)
+        } 
+
+        vkCmdPipelineBarrier(vkCommandBuffer, sourceStage, destinationStage, 0, 0, nil, 0, nil, 1, &barrier)
+    }
+
+    func copyBufferToImage(buffer: StagingBuffer, image: Image, width: UInt32, height: UInt32) {
+        var region = VkBufferImageCopy(
+            bufferOffset: 0, 
+            bufferRowLength: 0, 
+            bufferImageHeight: 0, 
+            imageSubresource: VkImageSubresourceLayers(), 
+            imageOffset: VkOffset3D(x: 0, y: 0, z: 0), 
+            imageExtent: VkExtent3D(width: width, height: height, depth: 1)
+        )
+
+        region.imageSubresource.aspectMask = UInt32(VK_IMAGE_ASPECT_COLOR_BIT.rawValue)
+        region.imageSubresource.mipLevel  = 0
+        region.imageSubresource.baseArrayLayer = 0
+        region.imageSubresource.layerCount = 1
+
+        vkCmdCopyBufferToImage(
+            vkCommandBuffer, 
+            buffer.vkBuffer, 
+            image.vkImage, 
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
+            1, 
+            &region
+        )
     }
 }

@@ -76,7 +76,15 @@ class Device {
         UniformBuffer(device: self, sizeInBytes: sizeInBytes, flags: flags)
     }
 
+    func createStagingBuffer(sizeInBytes: UInt64) -> StagingBuffer {
+        StagingBuffer(device: self, sizeInBytes: sizeInBytes)
+    }
+
     func createDescriptorPool() -> DescriptorPool {
         DescriptorPool(device: self)
+    }
+
+    func createImage(width: UInt32, height: UInt32, tiling: VkImageTiling, usage: VkImageUsageFlags, properties: VkMemoryPropertyFlags) -> Image {
+        Image(device: self, width: width, height: height, tiling: tiling, usage: usage, properties: properties)
     }
 }

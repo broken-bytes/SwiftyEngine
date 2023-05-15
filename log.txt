@@ -3,11 +3,67 @@ Launching Vulkan Application:
 - Executable Path: H:\Projects\SwiftTest\.build\x86_64-unknown-windows-msvc\debug\TestApp.exe
 - Working Directory: H:\Projects\SwiftTest\.build\x86_64-unknown-windows-msvc\debug
 - Log file: H:\Projects\SwiftTest\log.txt
-UNASSIGNED-khronos-validation-createinstance-status-message(INFO / SPEC): msgNum: -671457468 - Validation Information: [ UNASSIGNED-khronos-validation-createinstance-status-message ] Object 0: handle = 0x18cd5988be0, type = VK_OBJECT_TYPE_INSTANCE; | MessageID = 0xd7fa5f44 | Khronos Validation Layer Active:
+UNASSIGNED-khronos-validation-createinstance-status-message(INFO / SPEC): msgNum: -671457468 - Validation Information: [ UNASSIGNED-khronos-validation-createinstance-status-message ] Object 0: handle = 0x248dbc204d0, type = VK_OBJECT_TYPE_INSTANCE; | MessageID = 0xd7fa5f44 | Khronos Validation Layer Active:
     Settings File: Found at C:\Users\Marcel\AppData\Local\LunarG\vkconfig\override\vk_layer_settings.txt specified by VkConfig application override.
     Current Enables: None.
     Current Disables: None.
 
     Objects: 1
-        [0] 0x18cd5988be0, type: 1, name: NULL
+        [0] 0x248dbc204d0, type: 1, name: NULL
+"Creating pipeline layout"
+2
+264
+3912
+3912
+VUID-vkCmdPipelineBarrier-srcStageMask-03937(ERROR / SPEC): msgNum: -2138554904 - Validation Error: [ VUID-vkCmdPipelineBarrier-srcStageMask-03937 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x80883de8 | vkCmdPipelineBarrier(): .srcStageMask must not be 0 unless synchronization2 is enabled. The Vulkan spec states: If the synchronization2 feature is not enabled, pname:srcStageMask must not be 0 (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkCmdPipelineBarrier-srcStageMask-03937)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkCmdPipelineBarrier-dstStageMask-03937(ERROR / SPEC): msgNum: 1630022081 - Validation Error: [ VUID-vkCmdPipelineBarrier-dstStageMask-03937 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x612829c1 | vkCmdPipelineBarrier(): .dstStageMask must not be 0 unless synchronization2 is enabled. The Vulkan spec states: If the synchronization2 feature is not enabled, pname:dstStageMask must not be 0 (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkCmdPipelineBarrier-dstStageMask-03937)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkCmdPipelineBarrier-commandBuffer-recording(ERROR / SPEC): msgNum: 908748201 - Validation Error: [ VUID-vkCmdPipelineBarrier-commandBuffer-recording ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x362a65a9 | You must call vkBeginCommandBuffer() before this call to vkCmdPipelineBarrier. The Vulkan spec states: commandBuffer must be in the recording state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkCmdPipelineBarrier-commandBuffer-recording)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkCmdCopyBufferToImage-commandBuffer-recording(ERROR / SPEC): msgNum: -465137700 - Validation Error: [ VUID-vkCmdCopyBufferToImage-commandBuffer-recording ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0xe4468fdc | You must call vkBeginCommandBuffer() before this call to vkCmdCopyBufferToImage. The Vulkan spec states: commandBuffer must be in the recording state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkCmdCopyBufferToImage-commandBuffer-recording)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkCmdCopyBufferToImage-pRegions-00171(ERROR / SPEC): msgNum: 1867332608 - Validation Error: [ VUID-vkCmdCopyBufferToImage-pRegions-00171 ] Object 0: handle = 0x248dd1612b0, type = VK_OBJECT_TYPE_DEVICE; | MessageID = 0x6f4d3c00 | vkCmdCopyBufferToImage: pRegion[0] is trying to copy  4194304 bytes plus 0 offset to/from the VkBuffer (VkBuffer 0x2e2cd000000002b[]) which exceeds the VkBuffer total size of 3840000 bytes. The Vulkan spec states: srcBuffer must be large enough to contain all buffer locations that are accessed according to Buffer and Image Addressing, for each element of pRegions (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkCmdCopyBufferToImage-pRegions-00171)
+    Objects: 1
+        [0] 0x248dd1612b0, type: 3, name: NULL
+VUID-vkCmdCopyBufferToImage-dstImageLayout-00180(ERROR / SPEC): msgNum: 2078275855 - Validation Error: [ VUID-vkCmdCopyBufferToImage-dstImageLayout-00180 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x7bdff90f | vkCmdCopyBufferToImage: Cannot use VkImage 0xb9181f0000000029[] (layer=0 mip=0) with specific layout VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL that doesn't match the previous known layout VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL. The Vulkan spec states: dstImageLayout must specify the layout of the image subresources of dstImage specified in pRegions at the time this command is executed on a VkDevice (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkCmdCopyBufferToImage-dstImageLayout-00180)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+UNASSIGNED-CoreValidation-DrawState-InvalidImageLayout(ERROR / SPEC): msgNum: 1303270965 - Validation Error: [ UNASSIGNED-CoreValidation-DrawState-InvalidImageLayout ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x4dae5635 | vkQueueSubmit(): pSubmits[0].pCommandBuffers[0] command buffer VkCommandBuffer 0x248dfed6c50[] expects VkImage 0xb9181f0000000029[] (subresource: aspectMask 0x1 array layer 0, mip level 0) to be in layout VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL--instead, current layout is VK_IMAGE_LAYOUT_UNDEFINED.
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
+VUID-vkQueueSubmit-pCommandBuffers-00072(ERROR / SPEC): msgNum: 1999407236 - Validation Error: [ VUID-vkQueueSubmit-pCommandBuffers-00072 ] Object 0: handle = 0x248dfed6c50, type = VK_OBJECT_TYPE_COMMAND_BUFFER; | MessageID = 0x772c8884 | VkCommandBuffer 0x248dfed6c50[] used in the call to vkQueueSubmit is unrecorded and contains no commands. The Vulkan spec states: Any secondary command buffers recorded into any element of the pCommandBuffers member of any element of pSubmits must be in the pending or executable state (https://vulkan.lunarg.com/doc/view/1.2.198.1/windows/1.2-extensions/vkspec.html#VUID-vkQueueSubmit-pCommandBuffers-00072)
+    Objects: 1
+        [0] 0x248dfed6c50, type: 6, name: NULL
 Process terminated

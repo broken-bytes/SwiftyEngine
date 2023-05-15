@@ -20,13 +20,10 @@ class PipelineLayout {
             )
 
             vkHandleSafe(vkCreatePipelineLayout(device.device, &pipelineLayoutInfo, nil, &vkPipelineLayout))
-            debugPrint("Creating pipeline layout")
-
         }
     }
 
     deinit {
-        debugPrint("Destroying pipeline layout")
         vkDestroyPipelineLayout(device.device, vkPipelineLayout, nil)
     }
 }

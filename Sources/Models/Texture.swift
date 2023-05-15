@@ -5,7 +5,7 @@ public class Texture {
 
     public let width: UInt32
     public let height: UInt32
-    var data: UnsafeMutableRawPointer
+    public var data: UnsafeMutableRawPointer
     
     public init(width: UInt32, height: UInt32, bytes: UnsafeMutableRawPointer) {
         self.width = width

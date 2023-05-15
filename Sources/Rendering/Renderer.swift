@@ -117,10 +117,6 @@ public class Renderer {
     }
 
     public func render() {
-        
-        uploadBuffer.execute {
-            $0.upload()
-        }
 
         mainQueue.submit(commandBuffers: [uploadBuffer], fence: uploadFence)
         
@@ -258,8 +254,24 @@ public class Renderer {
     }
 
     public func uploadTexture(texture: Texture) -> UInt32 {
-        var img = Image(device: device, width: texture.width, height: texture.height)
+        var img = device.createImage(
+            width: texture.width, 
+            height: texture.height, 
+            tiling: VK_IMAGE_TILING_OPTIMAL, 
+            usage: UInt32(VK_IMAGE_USAGE_SAMPLED_BIT.rawValue | VK_IMAGE_USAGE_TRANSFER_DST_BIT.rawValue), 
+            properties: UInt32(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT.rawValue)
+        )
         images.append(img)
+        
+        let textByteSize = UInt64(width * height * 4)
+        // Buffer must be w * h * 4 because 32bit color
+        var buffer = device.createStagingBuffer(sizeInBytes: textByteSize)
+
+        buffer.writeBytes(numBytes: textByteSize, bytes: texture.data, offset: 0)
+
+        uploadBuffer.transition(image: img, format: VK_FORMAT_R8G8B8A8_SRGB, from: VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, to: VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+
+        uploadBuffer.copyBufferToImage(buffer: buffer, image: img, width: texture.width, height: texture.height)
 
         return img.id
     }

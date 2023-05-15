@@ -13,7 +13,6 @@ class IndexBuffer {
         var bufferInfo = VkBufferCreateInfo()   
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = UInt64(MemoryLayout<UInt16>.size * indices.count)
-        debugPrint(bufferInfo.size)
         count = UInt64(indices.count)
         bufferInfo.usage = UInt32(VK_BUFFER_USAGE_INDEX_BUFFER_BIT.rawValue)
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE
